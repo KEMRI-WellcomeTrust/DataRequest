@@ -2,6 +2,10 @@
 
 use yii\helpers\Html;
 use yii\widgets\DetailView;
+use app\models\User;
+use app\models\Project;
+use app\models\Lookup;
+use app\utilities\DataHelper;
 
 /* @var $this yii\web\View */
 /* @var $model app\models\DataRequest */
@@ -13,38 +17,60 @@ $this->params['breadcrumbs'][] = $this->title;
 ?>
 <div class="data-request-view">
 
-    <h1><?= Html::encode($this->title) ?></h1>
-
-    <p>
-        <?= Html::a('Update', ['update', 'id' => $model->id], ['class' => 'btn btn-primary']) ?>
-        <?= Html::a('Delete', ['delete', 'id' => $model->id], [
-            'class' => 'btn btn-danger',
-            'data' => [
-                'confirm' => 'Are you sure you want to delete this item?',
-                'method' => 'post',
-            ],
-        ]) ?>
-    </p>
-
     <?= DetailView::widget([
         'model' => $model,
         'attributes' => [
             'id',
-            'project_id',
-            'user_id',
-            'data_crfs:ntext',
-            'data_variables:ntext',
+            [                      
+                'label' => 'Project Name',
+                'format' => "raw",
+                'value' => "<span class='badge badge-success'>
+                ".Project::getName($model->project_id)." 
+                </span>"
+            ], 
+            [                      
+                'label' => 'Primary Contact',
+                'format' => "raw",
+                'value' => "<span class='badge badge-info'>
+                ".User::getUserNames($model->user_id)." 
+                </span>"
+            ], 
+            [                      
+                'label' => 'Data Manager',
+                'format' => "raw",
+                'value' => "<span class='badge badge-secondary'>".User::getUserNames($model->data_manager)."</span>"
+            ],
+            'data_crfs:html',
+            'data_variables:html',
             'data_sites',
             'date_from',
             'date_to',
-            'other_info:ntext',
+            'other_info:html',
             'received_date',
-            'reviewed_by',
-            'approved_by',
+            [                      
+                'label' => 'Reviewed By',
+                'format' => "raw",
+                'value' => "<span class='badge badge-secondary'>".User::getUserNames($model->reviewed_by)."</span>"
+            ],
+            'review_date',
+            'review_comments:html',
+            [                      
+                'label' => 'Approved By',
+                'format' => "raw",
+                'value' => "<span class='badge badge-secondary'>".User::getUserNames($model->approved_by)."</span>"
+            ],
             'approved_date',
-            'status',
-            'status_comments:ntext',
-            'feedback:ntext',
+            [                      
+                'label' => 'Approval Status',
+                'format' => "raw",
+                'value' => "<span class='badge badge-danger'>".Lookup::getValue("DataStatus", $model->status)."</span>"
+            ],
+            'status_comments:html',
+            [                      
+                'label' => 'Issued?',
+                'format' => "raw",
+                'value' => "<span class='badge badge-success'>".Lookup::getValue("IssuedStatus", $model->issued_status)."</span>"
+            ]
         ],
     ]) ?>
 

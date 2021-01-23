@@ -2,6 +2,10 @@
 
 use yii\helpers\Html;
 use yii\widgets\DetailView;
+use app\models\Lookup;
+use app\models\User;
+use app\utilities\DataHelper;
+use yii\helpers\Url;
 
 /* @var $this yii\web\View */
 /* @var $model app\models\Project */
@@ -13,31 +17,87 @@ $this->params['breadcrumbs'][] = $this->title;
 ?>
 <div class="project-view">
     <p>
-        <?= Html::a('Update', ['update', 'id' => $model->id], ['class' => 'btn pull-right btn-primary']) ?>
+        <?php
+            $dh = new DataHelper();
+            $toggle = $model->active==1?"<button type='button' class='btn btn-success btn-archived pull-right'> Active </button>":"<button type='button' class='btn btn-default pull-right btn-archived'> Archived </button>";
+            $url = Url::to(['archive', 'id'=>$model->id]);
+            echo Html::a($toggle, $url);
+        ?>
+        <?php
+            $dh = new DataHelper();
+                $url = Url::to(['update', 'id'=>$model->id]);
+            echo $dh->getModalButton($model, "update", "Edit Project", 'btn btn-danger pull-right btn-project','Edit Request',$url);
+        ?>
+        <?php
+            $dh = new DataHelper();
+                $url2 = Url::to(['//message/book', 'project_id'=>$model->id]);
+                $message = new app\models\Message();
+            echo $dh->getModalButton($message, "book", "Book Meeting", 'btn btn-primary pull-right btn-project','Book Meeting with Data Team',$url2);
+        ?>
         
     </p>
-
     <?= DetailView::widget([
         'model' => $model,
         'attributes' => [
             'id',
             'project_name',
-            'project_desc:ntext',
-            'project_aims:ntext',
-            'request_type',
-            'type_data',
-            'proposal_type',
+            [                      
+                'label' => 'Responsible User',
+                'format' => "raw",
+                'value' => "<span class='badge badge-info'>
+                ".User::getUserNames($model->user_id)." 
+                </span>"
+            ], 
+            [                      
+                'label' => 'Data Manager',
+                'format' => "raw",
+                'value' => "<span class='badge badge-secondary'>".User::getUserNames($model->data_manager)."</span>"
+            ],
+            [                      
+                'label' => 'Stage',
+                'format' => "raw",
+                'value' => "<span class='badge badge-success'>".Lookup::getValue("RequestStatus", $model->request_status)."</span>"
+            ],
+            'project_aims:html', 
+            [                      
+                'label' => 'Type of Data',
+                'value' => Lookup::getValue("TypeData", $model->type_data),
+            ],
+            [                      
+                'label' => 'Type of Proposal',
+                'value' => Lookup::getValue("ProposalType", $model->proposal_type),
+            ],
             'date_submitted',
-            'date_review',
-            'irb_other_approval',
-            'sap:ntext',
-            'pub_plan:ntext',
+            [                      
+                'label' => 'IRB or Other Approvals',
+                'value' => Lookup::getValue("IrbApproval", $model->irb_other_approval),
+            ],
+            [                      
+                'label' => 'Statistical Analysis Plan',
+                'format' => "raw",
+                'value' => function($data){
+                    return Html::a($data->sap, ['download','file_name'=>$data->sap]);
+                }
+            ],
+            'pub_plan:html',
             'target_completion_date',
-            'milestones:ntext',
-            'user_id',
-            'request_status',
-            'request_approved_by',
-            'request_reviewed_by',
+            'milestones:html',
+            [                      
+                'label' => 'Reviewed By',
+                'value' => User::getUserNames($model->request_reviewed_by)
+            ],
+            'date_review',
+            'review_notes:html',
+            [                      
+                'label' => 'Approval Status Date',
+                'value' => $model->date_approved,
+            ],
+            [                      
+                'label' => 'Approved By',
+                'value' => User::getUserNames($model->request_approved_by)
+            ],
+            'approval_notes:html',
+            
         ],
     ]) ?>
 

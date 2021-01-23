@@ -18,7 +18,7 @@ class ProjectSearch extends Project
     {
         return [
             [['id', 'request_type', 'type_data', 'proposal_type', 'irb_other_approval', 'user_id', 'request_status', 'request_approved_by'], 'integer'],
-            [['project_name', 'project_desc', 'project_aims', 'date_submitted', 'date_review', 'sap', 'pub_plan', 'target_completion_date', 'milestones', 'request_reviewed_by'], 'safe'],
+            [['project_name', 'project_aims', 'date_submitted', 'date_review', 'sap', 'pub_plan', 'target_completion_date', 'milestones', 'request_reviewed_by'], 'safe'],
         ];
     }
 
@@ -72,7 +72,6 @@ class ProjectSearch extends Project
         ]);
 
         $query->andFilterWhere(['like', 'project_name', $this->project_name])
-            ->andFilterWhere(['like', 'project_desc', $this->project_desc])
             ->andFilterWhere(['like', 'project_aims', $this->project_aims])
             ->andFilterWhere(['like', 'sap', $this->sap])
             ->andFilterWhere(['like', 'pub_plan', $this->pub_plan])

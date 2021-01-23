@@ -257,3 +257,34 @@ table.detail-view th {
 table.detail-view td {
 	width: 75%;
 }
+
+.btn-project{
+    margin-left: 5px;
+    color: #f1e5e5 !important;
+}
+.btn-project a{
+    color: #f1e5e5 !important;
+}
+.badge-info{
+    background-color: #5bc0de;
+    border-color: #46b8da;
+    color: #fff;
+}
+.badge-success{
+    color: #fff;
+    background-color: #449d44;
+    border-color: #398439;
+}
+.badge-warning{
+    color: #fff;
+    background-color: #f0ad4e;
+    border-color: #eea236;
+}
+.badge-danger{
+    color: #fff;
+    background-color: #d9534f;
+    border-color: #d43f3a;
+}
+.btn-archived{
+    margin-left: 5px;
+}

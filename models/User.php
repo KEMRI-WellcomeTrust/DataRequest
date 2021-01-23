@@ -30,7 +30,7 @@ class User extends \yii\db\ActiveRecord  implements IdentityInterface
      */
     public static function tableName()
     {
-        return '{{%csec_user}}';
+        return '{{%user}}';
     }
 
     /**
@@ -39,7 +39,7 @@ class User extends \yii\db\ActiveRecord  implements IdentityInterface
     public function rules()
     {
         return [
-            [['username','email', 'role','org_id'],'required'],
+            [['username','email', 'role'],'required'],
             [['email'],'email'],
             [['org_id'],'integer'],
             [['username', 'fname', 'mname', 'lname', 'designation'], 'string', 'max' => 200],
@@ -244,29 +244,7 @@ class User extends \yii\db\ActiveRecord  implements IdentityInterface
            }
        }
     }
-    
-    public static function isAdmin(){
-        if(!Yii::$app->user->isGuest){
-            $role = Yii::$app->user->identity->role;
-            if($role == 1 || $role == 3){
-                return true;
-            }
-            else{
-                return false;
-            }
-        }
-    }
-    public static function isSysAdmin(){
-        if(!Yii::$app->user->isGuest){
-            $role = Yii::$app->user->identity->role;
-            if($role == 1){
-                return true;
-            }
-            else{
-                return false;
-            }
-        }
-    }
+
     public function loginStamp(){
         $model = $this->findone($this->id);
         if($model){
@@ -281,14 +259,14 @@ class User extends \yii\db\ActiveRecord  implements IdentityInterface
         Yii::$app->mailer->compose()
             ->setFrom(Yii::$app->params['adminEmail'])
             ->setTo($this->email)
-            ->setSubject("CSEC Database Password Set Up!")
+            ->setSubject("Dashboard Password Set Up!")
            // ->setTextBody('Plain text content')
             ->setHtmlBody("<p> Dear {$this->username} </p>"
-                    . "<p> Your password for <a href='https://csec.keshokenya.or.ke'> CSEC Database </a> has been set up successfully. Please use the credentials below to login to our database: - </p>"
-                    . "URL: <a href='https://csec.keshokenya.or.ke'> https://csec.keshokenya.or.ke </a>"."<br/>"
+                    . "<p> Your password for <a href='https://analysis.chainnetwork.org'> analysis/data request </a> has been set up successfully. Please use the credentials below to login to our database: - </p>"
+                    . "URL: <a href='https://analysis.chainnetwork.org'> https://analysis.chainnetwork.org </a>"."<br/>"
                     . "Username: ".$this->username."<br/>"
                     . "Password: ".$this->confirmpass."<br/>"
-                    . "<p> Regards, <br/> CSEC Team <p>")
+                    . "<p> Regards, <br/> Data Team <p>")
             ->send();
     }
 
@@ -297,6 +275,9 @@ class User extends \yii\db\ActiveRecord  implements IdentityInterface
         if($model){
             return $model->fname." ".$model->mname." ".$model->lname;
         }
+    }
+    public function getNames(){
+        return $this->fname." ".$this->mname." ".$this->lname;
     }
     public static function getUserFilters(){
         $return = [];
@@ -318,11 +299,11 @@ class User extends \yii\db\ActiveRecord  implements IdentityInterface
             Yii::$app->mailer->compose()
             ->setFrom(Yii::$app->params['adminEmail'])
             ->setTo($model->email)
-            ->setSubject("CSEC Database Password Reset!")
+            ->setSubject("Dashboard Password Reset!")
            // ->setTextBody('Plain text content')
             ->setHtmlBody("<p> Dear {$model->username}, </p>"
-                    . "<p> Click on this link: <a href='https://csec.keshokenya.or.ke/web/index?r=site/resetpass&id={$model->id}'> Password Reset </a>, to proceed to resetting your password.</p>"
-                    . "<p> Regards, <br/> CSEC Team <p>")
+                    . "<p> Click on this link: <a href='https://analysis.chainnetwork.org/index.php?r=site/resetpass&id={$model->id}'> Password Reset </a>, to proceed to resetting your password.</p>"
+                    . "<p> Regards, <br/> Data Team <p>")
             ->send();
 
             return true;
@@ -331,4 +312,79 @@ class User extends \yii\db\ActiveRecord  implements IdentityInterface
         }
        
     }
+
+    public function isReviewer(){
+        if(in_array($this->role, [1,2,4])){ //hand coded roles, consider changing in the future
+            return true;
+        }
+        return false;
+    }
+    public function isApprover(){
+        if($this->role == 3 || $this->role == 4){
+            return true;
+        }
+
+        return false;
+    }
+
+    public function isSuperAdmin(){
+        if($this->role == 4){
+            return true;
+        }
+        else{
+            return false;
+        }
+    }
+    public function isAdmin(){
+        if($this->role == 4 || $this->role == 1){
+            return true;
+        }
+        else{
+            return false;
+        }
+    }
+
+    public static function getUserEmail($user_id){
+        $model = User::findone($user_id);
+        if($model){
+            return $model->email;
+        }
+    }
+
+    public static function getReviewers(){
+        $models = User::find()->where("role in (1,2,4)")->all();
+
+        if($models){
+            return $models;
+        }
+        else{
+            return false;
+        }
+    }
+
+    public static function getTo($user_id){
+        $model = User::findone($user_id);
+        if($model){
+            return $model->email;
+        }
+    }
+    public static function getFrom($user_id){
+        $model = User::findone($user_id);
+        if($model){
+            return $model->getNames()." <".$model->email.">";
+        }
+    }
+
+    public static function getDataTeam(){
+        $models = User::find()->where("role in (1,4)")->all();
+
+        if($models){
+            return $models;
+        }
+        else{
+            return false;
+        }
+    }
+
+
 }

@@ -83,7 +83,7 @@ function ajaxFormButton(uri,div,form){
 
 function ajaxFormSubmit(uri,div,form,show_wait, disable_pjax){
   
-     // alert($("#"+form).serialize());
+    //alert($("#"+form).serialize());
     // return false;
      
      $.ajax({
@@ -169,8 +169,6 @@ function dialogContent(div ,title,content_id){
 
 function ajaxDelete(uri, div, modelName, id){
    
-     
-     
      $.ajax({
             type: "GET",
             url:  uri,
@@ -339,7 +337,7 @@ function eraseCookie(name) {
 	createCookie(name,"",-1);
 }
 
-function uploadFile(url, divid, field){
+function uploadFile(url, divid, field, field_url){
     var formData = new FormData(); 
     formData.append(field, $('input[type=file]')[0].files[0]);
  
@@ -355,11 +353,11 @@ function uploadFile(url, divid, field){
             },
             success: function(data){   
                     $('#'+divid).html(data.div);
-                    $('#propertyfeatureimage-img_temp_url').attr('value', data.val);
+                    $('#'+field_url).attr('value', data.val);
                     console.log(data.div);   
             },
              error: function (response, status, message) {
-                //alert("Error! "+response.toString()+" "+status);
+              //alert("Error! "+response.toString()+" "+status);
               //  var err = JSON.parse(response.responseText);
               console.log(message);
               $('#'+divid).html("An error occured.");
@@ -474,6 +472,15 @@ function getContent(url, elem)
     });
     
 }
+
+$(function () {
+
+    $('[data-toggle="tooltip"]').tooltip({
+        trigger: 'hover',
+        placement: 'bottom'
+    })
+  
+})
 
 
 

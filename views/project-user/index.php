@@ -8,7 +8,7 @@ use app\models\ProjectUser;
 use app\models\ProjectUserSearch;
 use app\utilities\DataHelper;
 use yii\helpers\Url;
-
+ 
 /* @var $this yii\web\View */
 /* @var $searchModel app\models\ProjectUserSearch */
 /* @var $dataProvider yii\data\ActiveDataProvider */
@@ -40,14 +40,46 @@ $this->params['breadcrumbs'][] = $this->title;
         'filterModel' => $searchModel,
         'columns' => [
             ['class' => 'yii\grid\SerialColumn'],
-
-            'id',
-            'project_id',
             'name',
-            'affiliation',
-            'role',
+            'email',
+            [
+                'label'=>'Affiliation',
+                'format'=>'html',
+                 'attribute'=>'affiliation',
+                 'filter' => app\models\Lookup::getLookupValues("Affiliation"),
+                 'value'=> function ($data){
+                     return app\models\Lookup::getValue("Affiliation", $data->affiliation);
+                 }
+             ],
+            [
+                'label'=>'Role',
+                'format'=>'html',
+                 'attribute'=>'role',
+                 'filter' => app\models\Lookup::getLookupValues("DataAccessRole"),
+                 'value'=> function ($data){
+                     return app\models\Lookup::getValue("DataAccessRole", $data->role);
+                 }
+             ],
 
-            ['class' => 'yii\grid\ActionColumn'],
+            ['class' => 'yii\grid\ActionColumn',
+                'template' => '{update}{delete}',
+                'buttons' => [
+
+                            'update' => function ($url, $model) {
+                               
+                                $dh = new DataHelper();
+                                $url = Url::to(['project-user/update','id'=>$model->id],true);
+                                $link  = $dh->getModalButton($model, "project-user/update", "Project", 'glyphicon glyphicon-edit','',$url);
+                                return "&nbsp;".$link;
+                            },
+                            'delete' => function ($url, $model) {
+                                $dh = new DataHelper();
+                                $url = Url::to(['project-user/customdelete','id'=>$model->id],true);
+                                $link  = $dh->getModalButton($model, "project-user/customdelete", "Project", 'glyphicon glyphicon-remove','',$url);
+                                return "&nbsp;".$link;
+                            }
+                        ], 
+            ],
         ],
     ]); ?>
 

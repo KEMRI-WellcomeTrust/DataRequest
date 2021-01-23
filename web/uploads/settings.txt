@@ -1,0 +1,28 @@
+
+
+<user username="admin" password="Admin@2020" fullName="Administrator" roles="admin-gui,manager-gui"/>
+
+UPDATE mysql.user SET Password=PASSWORD('mysql2020') WHERE User='root';
+
+mariadb -u root -pmysql2020 mifosplatform-tenants < database/mifospltaform-tenants-first-time-install.sql 
+
+mysql -u root -pmysql2020 mifostenant-default < database/migrations/sample_data/load_sample_data.sql
+
+sudo cp fineract-provider.war /usr/share/tomcat/webapps/
+
+sudo cp -r apps/community-app/ /usr/share/tomcat/webapps/
+
+sudo cp -r api-docs/ /usr/share/tomcat/webapps/
+
+cd /usr/share/tomcat/webapps
+
+https://drive.google.com/file/d/1CA5vWCju8haxfk9uoN_SzQ76M7yFJ0jC/view?usp=sharing
+
+sudo firewall-cmd --zone=public --add-service=https --permanent
+
+GRANT ALL PRIVILEGES ON *.* TO 'mifos'@'%' IDENTIFIED BY 'mysql2020' WITH GRANT OPTION;
+
+server: 167.99.237.49
+User: mifos
+Password: mysql2020
+port: 3306

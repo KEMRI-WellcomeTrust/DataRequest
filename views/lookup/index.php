@@ -21,7 +21,7 @@ $this->title = 'Settings';
       
       $ranges = [
                   '300000'=>Html::a('Users',['user/index']), 
-                  '200000'=>Yii::$app->user->identity->isSysAdmin()? Html::a('Question Options',['lookup/index']):''
+                  '200000'=>Yii::$app->user->identity->isSuperAdmin()? Html::a('Question Options',['lookup/index']):''
                ];
       echo "<ul class='list-group'>";
       foreach($ranges as $key => $range){
@@ -52,7 +52,7 @@ $this->title = 'Settings';
                               <?php
                                 $dh = new DataHelper();
                                   $url = Url::to(['lookup-category/create']);
-                                 echo $dh->getModalButton(new \app\models\Beneficiary(), "lookup-category/create", "LookupCategory", 'btn btn-primary pull-right btn-beneficiary','Add Question Category',$url);
+                                 echo $dh->getModalButton(new \app\models\LookupCategory(), "lookup-category/create", "LookupCategory", 'btn btn-primary pull-right btn-beneficiary','Add Question Category',$url);
                                 ?>
                           </span>
                           

@@ -61,6 +61,7 @@ AppAsset::register($this);
         'options' => ['class' => 'navbar-nav navbar-right'],
         'items' => [
             !Yii::$app->user->isGuest ? ['label' => 'Home', 'url' => ['/site/index'],'linkOptions' => ['class'=>'btn btn-info btn-margin']]:'',
+            !Yii::$app->user->isGuest ? ['label' => 'Archived Projects', 'url' => ['/site/archive'],'linkOptions' => ['class'=>'btn btn-info btn-margin']]:'',
             '<li>'.$profile_btn.'</li>',
             !Yii::$app->user->isGuest?
                 Yii::$app->user->identity->isAdmin()  ? ['label' => 'Settings', 'url' => ['/user/index'],'linkOptions' => ['class'=>'btn btn-info btn-margin']]:''
@@ -105,7 +106,7 @@ $this->registerJsFile('@web/js/validations.js', ['depends' => [\yii\web\JqueryAs
         Modal::begin([
             'options' => [
                 'id' => 'modal_id',
-                'backdrop' => 'static',
+                'data-backdrop' => 'static',
                 'tabindex' => false // important for Select2 to work properly
             ],
             'header' => '<div id="modal_title_div"> <h4 style="margin:0; padding:0">Analysis Request </h4> </div>',

@@ -22,8 +22,6 @@ use yii\widgets\ActiveForm;
 
     <?= $form->field($model, 'project_name') ?>
 
-    <?= $form->field($model, 'project_desc') ?>
-
     <?= $form->field($model, 'project_aims') ?>
 
     <?= $form->field($model, 'request_type') ?>

@@ -65,43 +65,60 @@ class ProjectUserController extends Controller
      * If creation is successful, the browser will be redirected to the 'view' page.
      * @return mixed
      */
-    public function actionCreate($project_id)
+    public function actionCreate($project_id, $flag=0)
     {
         $model = new ProjectUser();
         $dh = new DataHelper;
         $keyword = 'project-user';
-        if($project_id){
+       if($project_id){
             $model->project_id = $project_id;
         }
-
-        if ($model->load(Yii::$app->request->post()) && $model->save()) {
-            //return $this->redirect(['view', 'id' => $model->id]);
-            if (Yii::$app->request->isAjax)
-            {
-               Yii::$app->response->format = Response::FORMAT_JSON;
-               
-                return array(
-                    'status'=>"success", 
-                    'message'=>"Successfully created project-user",
-                    'div'=>"Successfully created project-user.",
-                    'gridid'=>"pjax-project-user",
-                    'alert_div'=>"project-user-form-alert-0"
-                    );              
+        
+        if($model->load(Yii::$app->request->post())){
+            if ( $model->save()) {
+                //return $this->redirect(['view', 'id' => $model->id]);
+                if (Yii::$app->request->isAjax)
+                {
+                   if($flag == 0){
+                        $prjusr = new ProjectUser();
+                        $prjusr->project_id = $model->project_id;
+                        $message = 'Saved! submit another record';
+                        return $dh->processResponse($this, $prjusr, 'create', 'success', $message, 'pjax-'.$keyword, $keyword.'-form-alert-0');
+                   exit;
+                   }
+                   else{
+                        Yii::$app->response->format = Response::FORMAT_JSON;
+                        return array(
+                            'status'=>"success", 
+                            'message'=>"Successfully created project-user",
+                            'div'=>"Analysis/Data request completed successfully.",
+                            'gridid'=>"pjax-project-user",
+                            'alert_div'=>"project-user-form-alert-0"
+                            );  
+                   }
+                               
+                }
+                
+            } else {
+                if (Yii::$app->request->isAjax)
+                {
+                   $message = 'Please fix the below errors! <br/>'; //.print_r($model->getErrors(), true);
+                    return $dh->processResponse($this, $model, 'create', 'danger', $message, 'pjax-'.$keyword, $keyword.'-form-alert-0');
+                   exit; 
+                         
+                }
+                else{
+                    return $this->render('create', [
+                        'model' => $model,
+                    ]);
+                }
             }
-            
-        } else {
-            if (Yii::$app->request->isAjax)
-            {
-               $message = 'Please fix the below errors! <br/>'.print_r($model->getErrors(), true);
-                return $dh->processResponse($this, $model, 'create', 'danger', $message, 'pjax-'.$keyword, $keyword.'-form-alert-0');
-               exit; 
-                     
-            }
-            else{
-                return $this->render('create', [
-                    'model' => $model,
-                ]);
-            }
+    
+        }
+        else{ #having POST related issues
+            $message = 'Having POST related errors! <br/>'.print_r($model->getErrors(), true);
+            return $dh->processResponse($this, $model, 'create', 'danger', $message, 'pjax-'.$keyword, $keyword.'-form-alert-0');
+            exit; 
         }
     }
 
@@ -125,12 +142,12 @@ class ProjectUserController extends Controller
             {   
                 #return json_encode($this->renderAjax('update', ['model' => $model]));
                 $model->afterFind();
-                return $dh->processResponse($this, $model, $keyword, 'success', 'Successfully Saved!', 'pjax-'.$keyword, $keyword.'-form-alert-'.$model->id);                
+                return $dh->processResponse($this, $model, 'update', 'success', 'Successfully Saved!', 'pjax-'.$keyword, $keyword.'-form-alert-'.$model->id);                
             }
         } else {
             if (Yii::$app->request->isAjax)
             {
-                return $dh->processResponse($this, $model, $keyword, 'danger', 'Please fix the below errors!'.print_r($model->getErrors(),true), 'pjax-'.$keyword, $keyword.'-form-alert-'.$model->id);   
+                return $dh->processResponse($this, $model, 'update', 'danger', 'Please fix the below errors!'.print_r($model->getErrors(),true), 'pjax-'.$keyword, $keyword.'-form-alert-'.$model->id);   
             }
             else{
                 return $this->render('update', [

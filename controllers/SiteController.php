@@ -71,9 +71,8 @@ class SiteController extends Controller
             $searchModel = new ProjectSearch();
 
             $dataProvider = $searchModel->search(Yii::$app->request->queryParams);
-            if($role != 1 && $role != 3){ //return all records for role 1 and 3.
-                $dataProvider->query->andWhere(" org_id = $org_id ");
-            }
+            $dataProvider->query->andWhere(" active = 1 ")
+                        ->orderBy(['id'=>SORT_DESC]); #archived
           
             return $this->render('index', [
                 'searchModel' => $searchModel,
@@ -226,6 +225,26 @@ class SiteController extends Controller
                     'model' => $model,
                 ]);
             }
+        }
+    }
+
+    public function actionArchive()
+    {
+        
+        if(!Yii::$app->user->isGuest){
+            
+            $searchModel = new ProjectSearch();
+
+            $dataProvider = $searchModel->search(Yii::$app->request->queryParams);
+            $dataProvider->query->andWhere(" active = 0 OR active IS NULL "); #archived
+          
+            return $this->render('index', [
+                'searchModel' => $searchModel,
+                'dataProvider' => $dataProvider,
+            ]);
+        }
+        else{
+            return $this->redirect(['site/login']);
         }
     }
    

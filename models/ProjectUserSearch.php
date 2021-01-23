@@ -63,6 +63,7 @@ class ProjectUserSearch extends ProjectUser
         ]);
 
         $query->andFilterWhere(['like', 'name', $this->name])
+             ->andFilterWhere(['like', 'email', $this->email])
             ->andFilterWhere(['like', 'affiliation', $this->affiliation])
             ->andFilterWhere(['like', 'role', $this->role]);
 

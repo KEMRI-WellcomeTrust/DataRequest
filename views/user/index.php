@@ -21,7 +21,7 @@ $this->params['breadcrumbs'][] = $this->title;
       
       $ranges = [
                '300000'=>Html::a('Users',['user/index']), 
-               '200000'=>Yii::$app->user->identity->isSysAdmin()?Html::a('Question Options',['lookup/index']):''
+               '200000'=>Yii::$app->user->identity->isSuperAdmin()?Html::a('Question Options',['lookup/index']):''
                ];
       echo "<ul class='list-group'>";
       foreach($ranges as $key => $range){

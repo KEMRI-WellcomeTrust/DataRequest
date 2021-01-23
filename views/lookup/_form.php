@@ -17,10 +17,23 @@ use yii\helpers\Url;
     <?= $form->field($model, 'value')->textarea(['rows' => 6]) ?>
 
      <div class="form-group">
-         <?php if($model->isNewRecord){ $url =  Url::to(['lookup/create']); }else { $url =  Url::to(['lookup/update','id'=>$model->id]); } ?>
-        <?= Html::submitButton('Add Option', ['class' =>'btn btn-success btn-create','onclick'=>"ajaxFormSubmit('$url','lookup-form-div-$id','lookup-form-$id',1); return false;"]) ?>
+         <?php 
+            
+            if($model->isNewRecord){ 
+                $url =  Url::to(['lookup/create']); 
+                $url_reload =  Url::to(['lookup/create','continue'=>True]);
+             }else { 
+                 $url =  Url::to(['lookup/update','id'=>$model->id]); 
+            } 
+        ?>
+        <?php
+        if($model->isNewRecord){ 
+            echo  Html::submitButton('Submit and Continue', ['class' =>'btn btn-primary pull-left','onclick'=>"ajaxFormSubmit('$url_reload','lookup-form-div-$id','lookup-form-$id',1); return false;"]); 
+        }
+        ?>
+        <?= Html::submitButton('Submit and Complete', ['class' =>'btn btn-success pull-right','onclick'=>"ajaxFormSubmit('$url','lookup-form-div-$id','lookup-form-$id',1); return false;"]) ?>
     </div>
 
     <?php ActiveForm::end(); ?>
-
+   <p>&nbsp; </p>         
 </div>

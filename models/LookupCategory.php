@@ -19,7 +19,7 @@ class LookupCategory extends \yii\db\ActiveRecord
      */
     public static function tableName()
     {
-        return '{{%csec_lookup_category}}';
+        return '{{%lookup_category}}';
     }
 
     /**

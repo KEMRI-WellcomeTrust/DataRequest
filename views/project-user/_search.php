@@ -23,6 +23,8 @@ use yii\widgets\ActiveForm;
     <?= $form->field($model, 'project_id') ?>
 
     <?= $form->field($model, 'name') ?>
+    
+     <?= $form->field($model, 'email') ?>
 
     <?= $form->field($model, 'affiliation') ?>
 

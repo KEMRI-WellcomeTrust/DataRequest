@@ -4,12 +4,12 @@ namespace app\models;
 
 use Yii;
 
+
 /**
  * This is the model class for table "project".
  *
  * @property int $id
  * @property string|null $project_name
- * @property string|null $project_desc
  * @property string|null $project_aims
  * @property int|null $request_type
  * @property int|null $type_data
@@ -25,10 +25,17 @@ use Yii;
  * @property int|null $request_status
  * @property int|null $request_approved_by
  * @property string|null $request_reviewed_by
+ * @property string|null $date_approved
+ * @property string|null $review_notes
+ * @property string|null $approval_notes
+ * @property int|null $data_manager
+ * @property int|null $active
+ 
  */
 class Project extends \yii\db\ActiveRecord
 {
     public $flag_delete;
+    public $file_url;
     /**
      * {@inheritdoc}
      */
@@ -43,10 +50,10 @@ class Project extends \yii\db\ActiveRecord
     public function rules()
     {
         return [
-            [['project_name','project_desc', 'project_aims', 'request_type', 'type_data', 'proposal_type'], 'required'],
-            [['project_desc', 'project_aims', 'sap', 'pub_plan', 'milestones'], 'string'],
-            [['request_type', 'type_data', 'proposal_type', 'irb_other_approval', 'user_id', 'request_status', 'request_approved_by'], 'integer'],
-            [['date_submitted', 'date_review', 'target_completion_date'], 'safe'],
+            [['project_name', 'project_aims', 'type_data', 'proposal_type','user_id','date_submitted'], 'required'],
+            [['project_aims', 'sap','file_url', 'pub_plan', 'milestones','review_notes','approval_notes'], 'string'],
+            [['request_type', 'type_data', 'proposal_type', 'irb_other_approval', 'user_id', 'request_status', 'request_approved_by','data_manager','active'], 'integer'],
+            [['date_submitted', 'date_review', 'target_completion_date', 'date_approved'], 'safe'],
             [['project_name'], 'string', 'max' => 200],
             [['request_reviewed_by'], 'string', 'max' => 50],
         ];
@@ -60,9 +67,8 @@ class Project extends \yii\db\ActiveRecord
         return [
             'id' => 'ID',
             'project_name' => 'Project Name',
-            'project_desc' => 'Project Description',
             'project_aims' => 'Project Aims',
-            'request_type' => 'Request Type',
+           // 'request_type' => 'Request Type',
             'type_data' => 'Type of Data',
             'proposal_type' => 'Type of Proposal',
             'date_submitted' => 'Date Submitted',
@@ -72,10 +78,15 @@ class Project extends \yii\db\ActiveRecord
             'pub_plan' => 'Publication Plan',
             'target_completion_date' => 'Target Completion Date',
             'milestones' => 'Milestones',
-            'user_id' => 'Responsible User',
+            'user_id' => 'Primary Contact',
             'request_status' => 'Request Status',
             'request_approved_by' => 'Request Approved By',
             'request_reviewed_by' => 'Request Reviewed By',
+            'date_approved' => "Date Approved",
+            'review_notes' => "Review Notes",
+            'approval_notes' => "Approval Notes",
+            "data_manager" => "Data Manager",
+            "active" => "Active"
         ];
     }
 
@@ -86,6 +97,51 @@ class Project extends \yii\db\ActiveRecord
     public static function find()
     {
         return new ProjectQuery(get_called_class());
+    }
+    
+    public function beforeSave($insert){
+
+        if($this->isNewRecord){
+            if($this->request_status == 1){ #new project submitted. Notify data team
+              $reviewers = User::getReviewers();
+              if($reviewers){
+                  foreach($reviewers as $reviewer){
+                    $from = User::getFrom($this->user_id);
+                    $to = User::getTo($reviewer->id);
+                    $subject = "New Analysis Request: ".$this->project_name;
+                    $message = "Hi {$reviewer->getNames()}, <br/>We have received an analysis request. Please login to view the details.";
+                    Message::sendMessage($from, $to, $subject, $message, $this->id);
+                  }
+
+              }
+               
+            }
+        }
+        else{
+            //this is a resubmission
+            if($this->request_status == 4){ #this is a resubmission. Notify data team
+                $reviewers = User::getReviewers();
+                if($reviewers){
+                    foreach($reviewers as $reviewer){
+                      $from = User::getFrom($this->user_id);
+                      $to = User::getTo($reviewer->id);
+                      $project_id = $this->id;
+                      $subject = "Updated Analysis Request: ".$this->project_name;
+                      $message = "Hi {$reviewer->getNames()}, <br/>We have received updates from this analysis request. Please login to view the details.";
+                      Message::sendMessage($from, $to, $subject, $message, $project_id);
+                    }
+  
+                }
+                 
+              }
+        }
+
+        if($this->hasErrors()){
+            return false;
+        }
+        else{
+            return true;
+        }
     }
 
     public function getGridColumns(){
@@ -151,5 +207,61 @@ class Project extends \yii\db\ActiveRecord
             }
         }
         return $columns;
+    }
+
+    public function setReview($current_review){
+        $review_user = User::getUserNames($this->request_reviewed_by);
+        $notes = $this->review_notes;
+        $date = $this->date_review;
+        $review = "";
+        if($notes){
+            $review = <<<HEREDOC
+$review_user : <br/>
+<p> $notes </p>
+<p> Date: $date </p>
+HEREDOC;
+        }
+        
+        return $current_review." <p> ". $review ." </p>";
+
+    }
+
+    public function projectStatus(){
+        $value = Lookup::getValue("RequestStatus", $this->request_status);
+
+        return $value;
+    }
+
+    public static function getName($id){
+        $model = self::findone($id);
+        if($model){
+            return $model->project_name;
+        }
+    }
+
+    public static function counter($case){
+        $list = '';
+        switch ($case){
+            case "submitted":
+                $list = 1;
+                break;
+            case "under-review":
+                $list = "3,4,8";
+                break;
+            case "pending-approval":
+                $list = 2;
+                break;
+            case "approved":
+                $list = "5,6,7";
+                break;
+            default:
+                $list=0;
+
+        }
+            
+        $connection = Yii::$app->getDb();
+        $command = $connection->createCommand("SELECT count(*) as total FROM project where request_status IN ($list)");
+        $result = $command->queryAll();
+        return $result[0]['total'];
     }
 }

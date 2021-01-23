@@ -64,7 +64,7 @@ class LookupController extends Controller
      * If creation is successful, the browser will be redirected to the 'view' page.
      * @return mixed
      */
-    public function actionCreate($fk_category = '')
+    public function actionCreate($fk_category = '', $continue=false)
     {
         $model = new Lookup();
         $dh = new DataHelper;
@@ -75,8 +75,17 @@ class LookupController extends Controller
             //return $this->redirect(['view', 'id' => $model->id]);
             if (Yii::$app->request->isAjax)
             {
-               return $dh->processResponse($this, $model, 'update', 'success', 'Successfully Saved!', 'pjax-'.$keyword."-".$model->fk_category, $keyword.'-form-alert-'.$model->id);
-               exit;               
+                if($continue){
+                    $lookup = new Lookup();
+                    $lookup->fk_category = $model->fk_category;
+                    return $dh->processResponse($this,  $lookup, 'create', 'success', 'Successfully Saved! Continue to insert a new record!', 'pjax-'.$keyword, $keyword.'-form-alert-0');
+                    exit; 
+                }
+                else{
+                    return $dh->processResponse($this, $model, 'update', 'success', 'Successfully Saved!', 'pjax-'.$keyword."-".$model->fk_category, $keyword.'-form-alert-'.$model->id);
+                    exit;  
+                }
+                            
             }
             
         } else {

@@ -11,6 +11,9 @@ use yii\filters\VerbFilter;
 use app\utilities\DataHelper;
 use yii\web\Response;
 use yii\helpers\Url;
+use app\models\DataRequest;
+use app\models\Message;
+use app\models\User;
 
 /**
  * ProjectController implements the CRUD actions for Project model.
@@ -70,31 +73,31 @@ class ProjectController extends Controller
     {
         $model = new Project();
         $dh = new DataHelper;
-        
         $keyword = 'project';
-        $model->user_id = Yii::$app->user->identity->id;
+        $model->request_status = 1;
 
-        if ($model->load(Yii::$app->request->post()) && $model->save()) {
-            //return $this->redirect(['view', 'id' => $model->id]);
-            if (Yii::$app->request->isAjax)
-            {
-               Yii::$app->response->format = Response::FORMAT_JSON;
-               $url = Url::to(['project/index', 'id' => $model->id]);
-               $redirect = <<<DOC
-                     <script>
-                       window.location.replace("$url");
-                       </script>
-DOC;
-               
-                return array(
-                    'status'=>"success", 
-                    'message'=>"Successfully created project",
-                    'div'=>"Successfully created project...".$redirect,
-                    'gridid'=>"pjax-project",
-                    'alert_div'=>"project-form-alert-0"
-                    );              
+        if ($model->load(Yii::$app->request->post()) ) {
+
+            if($model->file_url){
+                $model->sap = $model->file_url;
             }
             
+            if($model->save()){
+                //return $this->redirect(['view', 'id' => $model->id]);
+                if (Yii::$app->request->isAjax)
+                {
+                    $message = 'Successfully created project <br/>';
+                    $dataRequest = new DataRequest();
+                    $dataRequest->project_id = $model->id;
+                    return $dh->processResponse($this, $dataRequest, '//data-request/create', 'success', $message, 'pjax-'.$keyword, $keyword.'-form-alert-0');
+                exit;           
+                }
+            }
+            else{
+                $message = 'Please fix the below errors! <br/>'.print_r($model->getErrors(), true);
+                return $dh->processResponse($this, $model, 'create', 'danger', $message, 'pjax-'.$keyword, $keyword.'-form-alert-0');
+               exit; 
+            }
         } else {
             if (Yii::$app->request->isAjax)
             {
@@ -122,24 +125,178 @@ DOC;
     {
         $model = $this->findModel($id);
         $dh = new DataHelper;
-        $model->load(Yii::$app->request->post());
         $keyword = 'project';
-   
-        if ( $model->save()) {
-            //return $this->redirect(['view', 'id' => $model->id]);
-            if (Yii::$app->request->isAjax)
-            {   
-                #return json_encode($this->renderAjax('update', ['model' => $model]));
-                $model->afterFind();
-                return $dh->processResponse($this, $model, $keyword, 'success', 'Successfully Saved!', 'pjax-'.$keyword, $keyword.'-form-alert-'.$model->id);                
+        $model->request_status = 4; //resubmitted.
+        $sap = $model->sap;
+
+        if($model->load(Yii::$app->request->post())){
+            
+            if($model->file_url){
+                $model->sap = $model->file_url;
+            }else{
+                $model->sap = $sap;
             }
-        } else {
+            
+            if ( $model->save()) {
+                //return $this->redirect(['view', 'id' => $model->id]);
+                if (Yii::$app->request->isAjax)
+                {   
+                    #return json_encode($this->renderAjax('update', ['model' => $model]));
+                    $model->afterFind();
+                    Yii::$app->response->format = Response::FORMAT_JSON;
+                   $url = Url::to(['project/index', 'id' => $model->id]);
+                   $redirect = <<<DOC
+                         <script>
+                           window.location.replace("$url");
+                           </script>
+DOC;
+                   
+                    return array(
+                        'status'=>"success", 
+                        'message'=>"Successfully updated project",
+                        'div'=>"Successfully updated project...", //.$redirect
+                        'gridid'=>"pjax-project",
+                        'alert_div'=>"project-form-alert-0"
+                        );                
+                }
+            } 
+        }
+        else {
             if (Yii::$app->request->isAjax)
             {
-                return $dh->processResponse($this, $model, $keyword, 'danger', 'Please fix the below errors!'.print_r($model->getErrors(),true), 'pjax-'.$keyword, $keyword.'-form-alert-'.$model->id);   
+                return $dh->processResponse($this, $model, 'update', 'danger', 'Please fix the below errors!'.print_r($model->getErrors(),true), 'pjax-'.$keyword, $keyword.'-form-alert-'.$model->id);   
             }
             else{
                 return $this->render('update', [
+                    'model' => $model,
+                ]);
+            }
+        }
+        
+        
+    }
+
+    /**
+     * Updates an existing Project model.
+     * If update is successful, the browser will be redirected to the 'view' page.
+     * @param integer $id
+     * @return mixed
+     * @throws NotFoundHttpException if the model cannot be found
+     */
+    public function actionReview($id)
+    {
+        $model = $this->findModel($id);
+        $dh = new DataHelper;
+
+        $current_review = $model->review_notes;
+        $keyword = 'project';
+        if($model->load(Yii::$app->request->post())){
+            $model->date_review = date("Y-m-d");
+            $model->request_reviewed_by = (string)Yii::$app->user->identity->id;
+            $model->review_notes = $model->setReview($current_review);
+            
+            if ( $model->save()) {
+                //return $this->redirect(['view', 'id' => $model->id]);
+                if (Yii::$app->request->isAjax)
+                {   
+                    $model->afterFind();
+                    #send email alert
+                    $from =User::getFrom($model->request_reviewed_by);
+                    $to = User::getTo($model->user_id);
+                    $subject = "New Review Comment";
+                    $project_id = $model->id;
+                    $message = "We have recieved a review comment about your analysis request. Please login to view the details.";
+                    Message::sendMessage($from, $to, $subject, $message, $project_id);
+                    
+                    Yii::$app->response->format = Response::FORMAT_JSON;
+                $url = Url::to(['project/index', 'id' => $model->id]);
+                $redirect = <<<DOC
+                        <script>
+                        window.location.replace("$url");
+                        </script>
+DOC;
+                
+                    return array(
+                        'status'=>"success", 
+                        'message'=>"Successfully reviewed project",
+                        'div'=>"Successfully reviewed project...".$redirect,
+                        'gridid'=>"pjax-project",
+                        'alert_div'=>"project-form-alert-0"
+                        );                 
+                }
+            }
+            else{
+                return $dh->processResponse($this, $model, 'review', 'danger', 'Please fix the below errors!'.print_r($model->getErrors(),true), 'pjax-'.$keyword, $keyword.'-form-alert-'.$model->id);   
+            }
+        }
+         else {
+            if (Yii::$app->request->isAjax)
+            {
+                return $dh->processResponse($this, $model, 'review', 'danger', 'Please fix the below errors!'.print_r($model->getErrors(),true), 'pjax-'.$keyword, $keyword.'-form-alert-'.$model->id);   
+            }
+            else{
+                return $this->render('review', [
+                    'model' => $model,
+                ]);
+            }
+        }
+    }
+
+/**
+     * Updates an existing Project model.
+     * If update is successful, the browser will be redirected to the 'view' page.
+     * @param integer $id
+     * @return mixed
+     * @throws NotFoundHttpException if the model cannot be found
+     */
+    public function actionApprove($id)
+    {
+        $model = $this->findModel($id);
+        $dh = new DataHelper;
+        $keyword = 'project';
+        if($model->load(Yii::$app->request->post())){
+            $model->date_approved = date("Y-m-d");
+            $model->request_approved_by = Yii::$app->user->identity->id;
+            
+            if ( $model->save()) {
+                //return $this->redirect(['view', 'id' => $model->id]);
+                if (Yii::$app->request->isAjax)
+                {
+                    #send email alert
+                    $from =User::getFrom($model->request_approved_by);
+                    $to = User::getTo($model->user_id);
+                    $subject = "Analysis Request Update";
+                    $project_id = $model->id;
+                    $message = "An approval update was posted on your analysis request. Please login to view the details. ";
+                    Message::sendMessage($from, $to, $subject, $message, $project_id);
+
+                    #return json_encode($this->renderAjax('update', ['model' => $model]));
+                    $model->afterFind();
+                    Yii::$app->response->format = Response::FORMAT_JSON;
+                $url = Url::to(['project/index', 'id' => $model->id]);
+                $redirect = <<<DOC
+                        <script>
+                        window.location.replace("$url");
+                        </script>
+DOC;
+                
+                    return array(
+                        'status'=>"success", 
+                        'message'=>"Successfully created project",
+                        'div'=>"Successfully created project...".$redirect,
+                        'gridid'=>"pjax-project",
+                        'alert_div'=>"project-form-alert-0"
+                        );                 
+                }
+            }
+        }
+        else {
+            if (Yii::$app->request->isAjax)
+            {
+                return $dh->processResponse($this, $model, 'approve', 'danger', 'Please fix the below errors!'.print_r($model->getErrors(),true), 'pjax-'.$keyword, $keyword.'-form-alert-'.$model->id);   
+            }
+            else{
+                return $this->render('approve', [
                     'model' => $model,
                 ]);
             }
@@ -221,6 +378,54 @@ DOC;
 
     }
 
+    public function actionStatusupdate($id){
+        $model = $this->findModel($id);
+        $dh = new DataHelper;
+        $keyword = 'project';
+        if($model->load(Yii::$app->request->post())){
+            
+            if ( $model->save()) {
+                //return $this->redirect(['view', 'id' => $model->id]);
+                if (Yii::$app->request->isAjax)
+                {   
+                    #return json_encode($this->renderAjax('update', ['model' => $model]));
+                    $model->afterFind();
+                    Yii::$app->response->format = Response::FORMAT_JSON;
+
+                    #send email alert
+                    $from =User::getFrom(Yii::$app->user->identity->id);
+                    $to = User::getTo($model->user_id);
+                    $subject = "Analysis Request Update";
+                    $project_id = $model->id;
+                    $message = "The data team have posted an update on the status of your data request. Login to check the details. ";
+                    Message::sendMessage($from, $to, $subject, $message, $project_id);
+                
+                    return array(
+                        'status'=>"success", 
+                        'message'=>"Successfully updated project status",
+                        'div'=>"Successfully updated project status.",
+                        'gridid'=>"pjax-project",
+                        'alert_div'=>"project-form-alert-0"
+                        );                 
+                }
+            }
+            else{
+                return $dh->processResponse($this, $model, 'status', 'danger', 'Please fix the below errors!'.print_r($model->getErrors(),true), 'pjax-'.$keyword, $keyword.'-form-alert-'.$model->id);   
+            }
+        }
+         else {
+            if (Yii::$app->request->isAjax)
+            {
+                return $dh->processResponse($this, $model, 'status', 'danger', 'Please fix the below errors!'.print_r($model->getErrors(),true), 'pjax-'.$keyword, $keyword.'-form-alert-'.$model->id);   
+            }
+            else{
+                return $this->render('status', [
+                    'model' => $model,
+                ]);
+            }
+        }
+    }
+
     /**
      * Finds the Project model based on its primary key value.
      * If the model is not found, a 404 HTTP exception will be thrown.
@@ -235,5 +440,84 @@ DOC;
         }
 
         throw new NotFoundHttpException('The requested page does not exist.');
+    }
+
+    public function actionUpload(){
+        
+        $tmp_name = $_FILES['project-sap']["tmp_name"];   
+        $temp = $_FILES["project-sap"]["name"];
+        
+        Yii::$app->response->format = \yii\web\Response::FORMAT_JSON;
+        
+        if(move_uploaded_file($tmp_name, "uploads/$temp")){
+            return array(
+            'div'=>"<span class='success'> Uploaded Successfully </span>",
+             'val'=>$temp
+            );
+        }
+        else{
+            return array(
+            'div'=>"Oops! An Error Occured",
+            );
+        }
+       
+    }
+
+    public function actionDownload($file_name){
+
+        $path = Yii::getAlias('@webroot') . '/uploads';
+        $file = $path . '/'.$file_name;
+
+        if (file_exists($file)) {
+
+        Yii::$app->response->sendFile($file);
+
+        }
+    }
+
+    public function actionArchive($id){
+        $model = $this->findModel($id);
+        if($model){
+            if($model->active == 1){
+                $model->active = 0;
+                $model->save(false);
+            }
+            else{
+                $model->active=1;
+                $model->save(false);
+            }
+            
+        }
+
+        return $this->redirect(['index','id'=>$model->id]);
+    }
+
+    public function actionAssign($id)
+    {
+        $model = $this->findModel($id);
+        $dh = new DataHelper;
+        $keyword = 'project';
+        if($model->load(Yii::$app->request->post())){
+            if ( $model->save()) {
+                //return $this->redirect(['view', 'id' => $model->id]);
+                if (Yii::$app->request->isAjax)
+                {   
+                    #return json_encode($this->renderAjax('update', ['model' => $model]));
+                    $model->afterFind();
+                    return $dh->processResponse($this, $model, 'view', 'success', 'Successfully Saved!', 'pjax-'.$keyword, $keyword.'-form-alert-'.$model->id);               
+                }
+            }
+        }
+        else {
+            if (Yii::$app->request->isAjax)
+            {
+                return $dh->processResponse($this, $model, 'assign', 'danger', 'Please fix the below errors!'.print_r($model->getErrors(),true), 'pjax-'.$keyword, $keyword.'-form-alert-'.$model->id);   
+            }
+            else{
+                return $this->render('assign', [
+                    'model' => $model,
+                ]);
+            }
+        }
     }
 }
