@@ -19,20 +19,24 @@ $this->params['breadcrumbs'][] = $this->title;
     <p>
         <?php
             $dh = new DataHelper();
-            $toggle = $model->active==1?"<button type='button' class='btn btn-success btn-archived pull-right'> Active </button>":"<button type='button' class='btn btn-default pull-right btn-archived'> Archived </button>";
-            $url = Url::to(['archive', 'id'=>$model->id]);
-            echo Html::a($toggle, $url);
+            $label = "<button type='button' class='btn btn-info btn-project pull-right'> View in PDF </button>";
+            $url = Url::to(['report', 'id'=>$model->id]);
+            echo Html::a($label, $url);
         ?>
         <?php
-            $dh = new DataHelper();
-                $url = Url::to(['update', 'id'=>$model->id]);
-            echo $dh->getModalButton($model, "update", "Edit Project", 'btn btn-danger pull-right btn-project','Edit Request',$url);
+           # $dh = new DataHelper();
+           # $toggle = $model->active==1?"<button type='button' class='btn btn-success btn-archived pull-right'> Active </button>":"<button type='button' class='btn btn-default pull-right btn-archived'> Archived </button>";
+           # $url = Url::to(['archive', 'id'=>$model->id]);
+           # echo Html::a($toggle, $url);
         ?>
         <?php
-            $dh = new DataHelper();
                 $url2 = Url::to(['//message/book', 'project_id'=>$model->id]);
                 $message = new app\models\Message();
             echo $dh->getModalButton($message, "book", "Book Meeting", 'btn btn-primary pull-right btn-project','Book Meeting with Data Team',$url2);
+        ?>
+        <?php
+            $url = Url::to(['update', 'id'=>$model->id]);
+            echo $dh->getModalButton($model, "update", "Edit Project", 'btn btn-danger pull-right btn-project','Edit Request',$url);
         ?>
         
     </p>
@@ -42,48 +46,62 @@ $this->params['breadcrumbs'][] = $this->title;
             'id',
             'project_name',
             [                      
-                'label' => 'Responsible User',
+                'label' => 'Primary Contact',
                 'format' => "raw",
-                'value' => "<span class='badge badge-info'>
-                ".User::getUserNames($model->user_id)." 
-                </span>"
+                'value' => User::getUserNames($model->user_id)
             ], 
+            [                      
+                'label' => 'Primary Contact Email',
+                'format' => "raw",
+                'value' => $model->proposer_email
+            ],
             [                      
                 'label' => 'Data Manager',
                 'format' => "raw",
-                'value' => "<span class='badge badge-secondary'>".User::getUserNames($model->data_manager)."</span>"
+                'value' => $model->getDataManager()
             ],
             [                      
-                'label' => 'Stage',
+                'label' => 'Members Involved',
                 'format' => "raw",
-                'value' => "<span class='badge badge-success'>".Lookup::getValue("RequestStatus", $model->request_status)."</span>"
+                'value' => $model->members_involved
             ],
-            'project_aims:html', 
             [                      
-                'label' => 'Type of Data',
-                'value' => Lookup::getValue("TypeData", $model->type_data),
+                'label' => 'Date Submitted',
+                'format' => "raw",
+                'value' => $model->date_submitted
             ],
+            'general_problem:html', 
+            'project_aims:html', 
             [                      
                 'label' => 'Type of Proposal',
                 'value' => Lookup::getValue("ProposalType", $model->proposal_type),
             ],
-            'date_submitted',
-            [                      
-                'label' => 'IRB or Other Approvals',
-                'value' => Lookup::getValue("IrbApproval", $model->irb_other_approval),
-            ],
-            [                      
+           /* [                      
                 'label' => 'Statistical Analysis Plan',
                 'format' => "raw",
                 'value' => function($data){
                     return Html::a($data->sap, ['download','file_name'=>$data->sap]);
                 }
-            ],
-            'pub_plan:html',
-            'target_completion_date',
+            ],  */
             'milestones:html',
+            'pub_plan:html',
+            
+            /*
+            [                      
+                'label' => 'Resource Required',
+                'value' => Lookup::getValue("ResourceRequired", $model->resource_required),
+            ],
+            [                      
+                'label' => 'Resource Type',
+                'value' => Lookup::getValue("ResourceType", $model->resource_type)
+            ],
+            [                      
+                'label' => 'Resource Duration',
+                'value' => $model->resource_duration,
+            ],   ***/
             [                      
                 'label' => 'Reviewed By',
+                'format' => "raw",
                 'value' => User::getUserNames($model->request_reviewed_by)
             ],
             'date_review',
@@ -94,9 +112,16 @@ $this->params['breadcrumbs'][] = $this->title;
             ],
             [                      
                 'label' => 'Approved By',
+                'format' => "raw",
                 'value' => User::getUserNames($model->request_approved_by)
             ],
             'approval_notes:html',
+
+            [                      
+                'label' => 'Completed',
+                'value' => Lookup::getValue("Completed", $model->resource_required),
+            ],
+            'date_completed'
             
         ],
     ]) ?>

@@ -81,7 +81,14 @@ class Message extends \yii\db\ActiveRecord
 From: $from, <br/>
 To: $to,  <br/>
 Subject: $subject  <br/>
-$message
+$message  <br/>
+
+<p> Access the system at: <a href='https://analysis.chainnetwork.org/'> https://analysis.chainnetwork.org </a> </p>
+<p> Email Us On: <br/>
+Data: data@chainnetwork.org <br/>
+Admin: admin@chainnetwork.org <br/>
+General: contactus@chainnetwork.org  <br/>
+</p>
 EOF;
 
 $state = false;

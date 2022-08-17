@@ -18,18 +18,24 @@ $this->params['breadcrumbs'][] = $this->title;
       <div class="panel-heading">
         <h3 class='panel-title pull-left project-title'><?= Html::encode($this->title) ?></h3>
        <div class="panel-title pull-right">
-            <button type="button" class="btn btn-success pull-right btn-project">
-                Approved <span class="badge badge-light"><?= Project::counter("approved"); ?></span>
-            </button>
-            <button type="button" class="btn btn-warning pull-right btn-project">
+       <a href=<?= Url::to(['site/index','status'=>"all"],true) ?> class="btn btn-danger pull-right btn-project">
+                Total <span class="badge badge-light"><?= Project::counter("all"); ?></span>
+            </a>
+            <a href=<?= Url::to(['site/index','status'=>"approved"],true) ?>  class="btn btn-success pull-right btn-project">
+                Approved 
+                <span class="badge badge-light">
+                    <?= Project::counter("approved")  ?>
+                </span>
+            </a>
+            <a href=<?= Url::to(['site/index','status'=>"pending"],true) ?> class="btn btn-warning pull-right btn-project">
                 Pending Approval <span class="badge badge-light"><?= Project::counter("pending-approval"); ?></span>
-            </button>
-            <button type="button" class="btn btn-info pull-right btn-project">
+            </a>
+            <a href=<?= Url::to(['site/index','status'=>"review"],true) ?> class="btn btn-info pull-right btn-project">
                 Under Review <span class="badge badge-light"><?= Project::counter("under-review"); ?></span>
-            </button>
-            <button type="button" class="btn btn-default pull-right">
+            </a>
+            <a href=<?= Url::to(['site/index','status'=>"submitted"],true) ?> class="btn btn-default pull-right">
                 Submitted <span class="badge badge-light"><?= Project::counter("submitted"); ?></span>
-            </button>
+            </a>
         </div>
         <div class="clearfix"></div>
       </div>
@@ -40,6 +46,11 @@ $this->params['breadcrumbs'][] = $this->title;
     <?php // echo $this->render('_search', ['model' => $searchModel]); ?>
 
     <p>
+        <div class="title">
+         <?php
+            echo "<strong> Now On: ".Project::getStatusTitle($status)."</strong>";
+         ?>
+        </div>
        <?php
           $dh = new DataHelper();
             $url = Url::to(['project/create', 'id'=>0]);
@@ -122,10 +133,10 @@ $this->params['breadcrumbs'][] = $this->title;
                             $admin = Yii::$app->user->identity->isAdmin();
                             if($admin){
                                 $url = Url::to(['project/assign','id'=>$data->id],true);
-                                $value  = $dh->getModalButton($data, "project/assign", "Assign Data Manager", 'btn btn-warning', $value,$url);
+                                $value  = $dh->getModalButton($data, "project/assign", "Assign Data Manager", 'btn btn-default', $value,$url);
         
                             }
-                             return "<span class='success'>".$value."</span> ";
+                             return $value;
         
                          }
                      ],
@@ -135,12 +146,20 @@ $this->params['breadcrumbs'][] = $this->title;
                          'attribute'=>'request_status',
                          'filter' => app\models\Lookup::getLookupValues("RequestStatus"),
                          'value'=> function ($data){
-                            $value = app\models\Lookup::getValue("RequestStatus", $data->request_status);
+                            $value = $data->getRequestStatus();
                             $isSuperAdmin = Yii::$app->user->identity->isSuperAdmin();
                             if($isSuperAdmin){
                                 $dh = new DataHelper();
-                                $url = Url::to(['project/statusupdate','id'=>$data->id],true);
-                                $link = $dh->getModalButton($data, "//project/statusupdate", "Update Request Status", 'glyphicon glyphicon-edit','update',$url);
+                                
+                                if($data->request_status == 5 | $data->request_status == 6 | $data->request_status == 7 | $data->request_status == 8 ){
+                                    $url = Url::to(['project/complete','id'=>$data->id],true);
+                                    $link = $dh->getModalButton($data, "//project/complete", "Update Request Status", 'glyphicon glyphicon-ok','complete',$url);
+                                }
+                                else{
+                                    $url = Url::to(['project/statusupdate','id'=>$data->id],true);
+                                    $link = $dh->getModalButton($data, "//project/statusupdate", "Update Request Status", 'glyphicon glyphicon-edit','update',$url);     
+                                }
+                                
                                 return $value." &nbsp; <br/> ".$link."&nbsp;";
                             }
                             else{
@@ -151,7 +170,7 @@ $this->params['breadcrumbs'][] = $this->title;
                      ],
                      
                      ['class' => 'yii\grid\ActionColumn',
-                       'template' => '{update}', //{delete}
+                       'template' => '{update}{report}', //{delete}
                        'buttons' => [
 
                                       'update' => function ($url, $model, $keyword) {
@@ -164,6 +183,11 @@ $this->params['breadcrumbs'][] = $this->title;
                                             $url = Url::to(['project/customdelete','id'=>$model->id],true);
                                             $link  = $dh->getModalButton($model, "project/customdelete", "Project", 'glyphicon glyphicon-remove','',$url);
                                             return "&nbsp;".$link;
+                                      },
+                                      'report' => function ($url, $model, $keyword) {
+                                            $url = Url::to(['project/report','id'=>$model->id],true);
+                                            $link = Html::a("",$url,['class'=>'glyphicon glyphicon-folder-open', 'target'=>"_blank"]);
+                                            return $link."&nbsp;";
                                       }
                               ], 
                       ],

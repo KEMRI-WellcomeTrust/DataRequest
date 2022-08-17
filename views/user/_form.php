@@ -13,47 +13,40 @@ use kartik\select2\Select2;
     <?php  $form = ActiveForm::begin(['id'=>'user-form-'.$id]); ?>
      <div id="user-form-alert-<?= $id ?>"></div>
 
-    <?= $form->field($model, 'username')->textInput(['maxlength' => true]) ?>
+    <?= $form->field($model, 'username')->textInput(['maxlength' => true])->label("Username (account name)")->hint("Enter Username") ?>
 
-    <?= $form->field($model, 'fname')->textInput(['maxlength' => true]) ?>
+    <?= $form->field($model, 'fname')->textInput(['maxlength' => true])->hint("First Name") ?>
 
-    <?= $form->field($model, 'mname')->textInput(['maxlength' => true]) ?>
+    <?= $form->field($model, 'mname')->textInput(['maxlength' => true])->hint("Middle Name (optional)") ?>
 
-    <?= $form->field($model, 'lname')->textInput(['maxlength' => true]) ?>
+    <?= $form->field($model, 'lname')->textInput(['maxlength' => true])->hint("Last Name") ?>
      
-    <?= $form->field($model, 'email')->textInput(['maxlength' => true]) ?>
-     
+    <?= $form->field($model, 'email')->textInput(['maxlength' => true])->hint("Email Address") ?>
+
+
     <?php  // Usage with ActiveForm and model
-   echo $form->field($model, 'org_id')->widget(Select2::classname(), [
-       'data' => \app\models\Lookup::getLookupValues('Organization Name'),
-       'options' => ['placeholder' => 'Please Select ...'],
-       'pluginOptions' => [
-           'allowClear' => true,
-           'style'=>'width:200px'
-       ],
-   ]); 
+    echo $form->field($model, 'fk_site')->widget(Select2::classname(), [
+        'data' => \app\models\ChainSites::getSiteOptions(),
+        'options' => ['placeholder' => 'Please Select ...'],
+        'pluginOptions' => [
+            'allowClear' => true,
+            'style'=>'width:200px'
+        ],
+     ]); 
    ?>
-     
     <?php  // Usage with ActiveForm and model
-        echo $form->field($model, 'designation')->widget(Select2::classname(), [
-            'data' => \app\models\Lookup::getLookupValues('Staff Designation'),
-            'options' => ['placeholder' => 'Please Select ...'],
-            'pluginOptions' => [
-                'allowClear' => true,
-                'style'=>'width:250px'
-            ],
-        ]); 
+      #  echo $form->field($model, 'designation')->widget(Select2::classname(), [
+      #      'data' => \app\models\Lookup::getLookupValues('Staff Designation'),
+      #      'options' => ['placeholder' => 'Please Select ...'],
+      #      'pluginOptions' => [
+      #          'allowClear' => true,
+      #          'style'=>'width:250px'
+      #      ],
+      #  ]); 
         ?>
-  <?php  // Usage with ActiveForm and model
-        echo $form->field($model, 'role')->widget(Select2::classname(), [
-            'data' => \app\models\Lookup::getLookupValues('Role'),
-            'options' => ['placeholder' => 'Please Select ...'],
-            'pluginOptions' => [
-                'allowClear' => true,
-                'style'=>'width:250px'
-            ],
-        ]); 
-        ?>
+
+    <?= $form->field($model, 'color')->textInput(['maxlength' => true, 'type'=>'color']) ?>
+    <?= $form->field($model, 'role')->hiddenInput()->label("") ?>
     <div class="form-group">
         <?php if($model->isNewRecord){ $url =  Url::to(['user/create']); }else { $url =  Url::to(['user/update','id'=>$model->id]); } ?>
         <?= Html::submitButton('Submit', ['class' =>'btn btn-success btn-create','onclick'=>"ajaxFormSubmit('$url','user-form-div-$id','user-form-$id',1); return false;"]) ?>

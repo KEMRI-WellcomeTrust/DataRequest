@@ -15,6 +15,9 @@ use Yii;
  * @property string $lname
  * @property string $designation
  * @property int $org_id
+ * @property int $fk_site
+ * @property string $role
+ * @property string $color
  *
  * @property CsecBeneficiary[] $csecBeneficiaries
  * @property CsecBeneficiary[] $csecBeneficiaries0
@@ -30,7 +33,7 @@ class User extends \yii\db\ActiveRecord  implements IdentityInterface
      */
     public static function tableName()
     {
-        return '{{%user}}';
+        return '{{chain_users}}';
     }
 
     /**
@@ -41,11 +44,12 @@ class User extends \yii\db\ActiveRecord  implements IdentityInterface
         return [
             [['username','email', 'role'],'required'],
             [['email'],'email'],
-            [['org_id'],'integer'],
+            [['username', 'email'], 'unique'],
+            [['fk_site'],'integer'],
             [['username', 'fname', 'mname', 'lname', 'designation'], 'string', 'max' => 200],
             [['email', 'passwd','confirmpass', 'checkpass','emailpass'], 'string', 'max' => 500],
             [['passwd'], 'string', 'max' => 500],
-            [['last_login','role'], 'safe']
+            [['last_login','role', 'color', 'org_id'], 'safe']
         ];
     }
 
@@ -57,13 +61,15 @@ class User extends \yii\db\ActiveRecord  implements IdentityInterface
         return [
             'id' => 'ID',
             'username' => 'Username',
-            'passwd' => 'Passwd',
-            'fname' => 'Fname',
-            'mname' => 'Mname',
-            'lname' => 'Lname',
+            'passwd' => 'Password',
+            'fname' => 'First Name',
+            'mname' => 'Middle Name',
+            'lname' => 'Last Name',
             'designation' => 'Designation',
             'role' => "Role",
-            'org_id' => "Organization Name"
+            'org_id' => "Organization Name",
+            'color' => "Preferred Color Code",
+            'fk_site' => "Site"
           
         ];
     }
@@ -87,22 +93,12 @@ class User extends \yii\db\ActiveRecord  implements IdentityInterface
         parent::beforeSave($insert);
         
           //hash the password
-          
         if($this->checkpass == 1){
             
-            if($this->passwd == ''){
+            if(trim($this->passwd) == ''){
                 $this->addError('passwd', "Password is required.");
             }
             
-            //check password
-            # return $this->checkPasswords();
-            if($this->checkPasswords()){
-                
-                $this->passwd =  Yii::$app->getSecurity()->generatePasswordHash($this->passwd); //md5($this->password);
-            }
-            else{
-                $this->addError('passwd', "Passwords do not match.");
-            }
         }
         
         
@@ -114,6 +110,7 @@ class User extends \yii\db\ActiveRecord  implements IdentityInterface
           }
     }
     public function afterSave($insert, $changedAttributes) {
+
         if($this->emailpass == 1){
             $this->emailPassword();
         }
@@ -122,16 +119,25 @@ class User extends \yii\db\ActiveRecord  implements IdentityInterface
     }
     
     public function checkPasswords(){
-        
-        if($this->passwd === $this->confirmpass){
-            
-            return true;
-        }
-        else{
-           # return "Humu: ".$this->passwd." and ".$this->confirmpass;
-            $this->addError('passwd', "Passwords do not match!"); //{$this->password} and Repeat: {$this->confirm_pass}
+
+        if(trim($this->passwd) == ''){
+            $this->addError('passwd', "Password is required.");
             return false;
         }
+        else{
+
+            if($this->passwd === $this->confirmpass){
+                $this->passwd =  Yii::$app->getSecurity()->generatePasswordHash($this->passwd);
+                return true;
+            }
+            else{
+               # return "Humu: ".$this->passwd." and ".$this->confirmpass;
+                $this->addError('passwd', "Passwords do not match!"); //{$this->password} and Repeat: {$this->confirm_pass}
+                return false;
+            }
+        }
+        
+        
     }
     /**
      * @inheritdoc
@@ -163,24 +169,28 @@ class User extends \yii\db\ActiveRecord  implements IdentityInterface
      */
     public static function findByUsername($username)
     {
-        $users = self::find()->All();
-        foreach ($users as $user) {
-            if (strcasecmp($user->username, $username) === 0) {
-                return new static($user);
-            }
+        $user = self::find()->where(['username'=>$username])->one();
+        if ($user) {
+            return new static($user);
+        }
+        else{
+            
+            return False;
         }
 
         return null;
     }
     public static function findUserByEmail($email){
         
-        $users = self::find()->All();
-        foreach ($users as $user) {
-            if (strcasecmp($user->email, $email) === 0) {
-                return new static($user);
-            }
+        $user = self::find()->where(['email'=>$email])->one();
+        if ($user) {
+            return new static($user);
         }
-
+        else{
+            
+            return False;
+        }
+        
         return null;
     }
 
@@ -259,21 +269,18 @@ class User extends \yii\db\ActiveRecord  implements IdentityInterface
         Yii::$app->mailer->compose()
             ->setFrom(Yii::$app->params['adminEmail'])
             ->setTo($this->email)
-            ->setSubject("Dashboard Password Set Up!")
+            ->setSubject("CHAIN Analysis Request App")
            // ->setTextBody('Plain text content')
-            ->setHtmlBody("<p> Dear {$this->username} </p>"
-                    . "<p> Your password for <a href='https://analysis.chainnetwork.org'> analysis/data request </a> has been set up successfully. Please use the credentials below to login to our database: - </p>"
-                    . "URL: <a href='https://analysis.chainnetwork.org'> https://analysis.chainnetwork.org </a>"."<br/>"
-                    . "Username: ".$this->username."<br/>"
-                    . "Password: ".$this->confirmpass."<br/>"
-                    . "<p> Regards, <br/> Data Team <p>")
+           ->setHtmlBody("<p> Dear {$this->username}, </p>"
+           . "<p>Welcome to the Analysis Request Application for the CHAIN Network. You can now proceed to creating/updating your requests. <br/></p>"
+           . "<p> Regards, <br/> CHAIN Data Team <p>")
             ->send();
     }
 
     public static function getUserNames($user_id){
         $model = User::findone($user_id);
         if($model){
-            return $model->fname." ".$model->mname." ".$model->lname;
+            return "<span style='color: $model->color ' >".$model->fname." ".$model->mname." ".$model->lname."</span>";
         }
     }
     public function getNames(){
@@ -353,6 +360,18 @@ class User extends \yii\db\ActiveRecord  implements IdentityInterface
 
     public static function getReviewers(){
         $models = User::find()->where("role in (1,2,4)")->all();
+
+        if($models){
+            return $models;
+        }
+        else{
+            return false;
+        }
+    }
+    
+    public static function getApprovers(){
+
+        $models = User::find()->where("role in (1,3,4)")->all();
 
         if($models){
             return $models;

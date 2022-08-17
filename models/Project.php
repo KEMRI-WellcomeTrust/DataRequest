@@ -1,8 +1,9 @@
 <?php
 
 namespace app\models;
-
+use app\utilities\DataHelper;
 use Yii;
+use yii\helpers\Url;
 
 
 /**
@@ -30,7 +31,16 @@ use Yii;
  * @property string|null $approval_notes
  * @property int|null $data_manager
  * @property int|null $active
- 
+ * 
+ * @property int|null $resource_required
+ * @property int|null $resource_type
+ * @property string|null $resource_duration
+ * @property int|null $completed
+ * @property string|null $date_completed
+ * 
+ * @property string|null $general_problem
+ * @property string|null $proposer_email
+ * @property string|null $members_involved
  */
 class Project extends \yii\db\ActiveRecord
 {
@@ -51,10 +61,11 @@ class Project extends \yii\db\ActiveRecord
     {
         return [
             [['project_name', 'project_aims', 'type_data', 'proposal_type','user_id','date_submitted'], 'required'],
-            [['project_aims', 'sap','file_url', 'pub_plan', 'milestones','review_notes','approval_notes'], 'string'],
+            [['project_aims', 'sap','file_url', 'pub_plan', 'milestones','review_notes','approval_notes', 'resource_duration'], 'string'],
             [['request_type', 'type_data', 'proposal_type', 'irb_other_approval', 'user_id', 'request_status', 'request_approved_by','data_manager','active'], 'integer'],
-            [['date_submitted', 'date_review', 'target_completion_date', 'date_approved'], 'safe'],
-            [['project_name'], 'string', 'max' => 200],
+            [['resource_required','resource_type', 'completed'],'integer'],
+            [['date_submitted', 'date_review', 'target_completion_date', 'date_approved', 'date_completed', 'general_problem', 'members_involved'], 'safe'],
+            [['project_name', 'proposer_email'], 'string', 'max' => 200],
             [['request_reviewed_by'], 'string', 'max' => 50],
         ];
     }
@@ -86,7 +97,12 @@ class Project extends \yii\db\ActiveRecord
             'review_notes' => "Review Notes",
             'approval_notes' => "Approval Notes",
             "data_manager" => "Data Manager",
-            "active" => "Active"
+            "active" => "Active",
+            'resource_required' => 'Resource Required',
+            'resource_type' => 'Resource Type',
+            'resource_duration' => 'Resource Duration',
+            'completed' => "Completed",
+            'date_completed' => "Date Completed"
         ];
     }
 
@@ -133,7 +149,7 @@ class Project extends \yii\db\ActiveRecord
   
                 }
                  
-              }
+            }
         }
 
         if($this->hasErrors()){
@@ -254,6 +270,9 @@ HEREDOC;
             case "approved":
                 $list = "5,6,7";
                 break;
+            case "all":
+                $list = "1,2,3,4,5,6,7,8";
+                break;
             default:
                 $list=0;
 
@@ -263,5 +282,115 @@ HEREDOC;
         $command = $connection->createCommand("SELECT count(*) as total FROM project where request_status IN ($list)");
         $result = $command->queryAll();
         return $result[0]['total'];
+    }
+
+    public static function getStatusQuery($status){
+        $query = "";
+
+        switch($status){
+            case "submitted":
+                $query = "request_status = 1";
+                break;
+            case "review":
+                $query = "request_status IN (3,4,8)";
+                break;
+            case "pending":
+                $query = "request_status = 2";
+                break;
+            case "approved":
+                $query = "request_status IN (5,6,7)";
+                break;
+            case "all":
+                $query = "request_status IN (1,2,3,4,5,6,7,8)";
+                break;
+            default:
+                $query='';
+        }
+
+        return $query;
+    }
+
+    public static function getStatusTitle($status){
+        $title = "";
+
+        switch($status){
+            case "submitted":
+                $title = "<span class='btn btn-sm btn-default'>Submitted </span>";
+                break;
+            case "review":
+                $title = "<span class='btn btn-sm btn-info'>Under Review</span>";
+                break;
+            case "pending":
+                $title = "<span class='btn btn-sm btn-warning'>Pending Approval</span>";
+                break;
+            case "approved":
+                $title = "<span class='btn btn-sm btn-success'>Approved</span>";
+                break;
+            case "all":
+                $title = "<span class='btn btn-sm btn-danger'>All</span>";
+                break;
+            default:
+                $title='';
+        }
+
+        return $title;
+    }
+
+    public function getRequestStatus(){
+        #app\models\Lookup::getValue("RequestStatus", $data->request_status)
+        $color = self::getStatusColor($this->request_status);
+        $value = Lookup::getValue("RequestStatus", $this->request_status);
+
+        return "<span style='color:$color'>".$value."</span>"; 
+    }
+
+    public static function getStatusColor($request_status){
+        $color = "#85929e";
+        switch($request_status){
+            case 1:
+                $color = "#1c2833";
+                break;
+            case 2:
+                $color = "#9c640c";
+                break;
+            case 3:
+                $color = "#2e86c1";
+                break;
+            case 4:
+                $color = "#2e86c1";
+                break;
+            case 5:
+                $color = "#16a085";
+                break;
+            case 6:
+                $color = "#16a085";
+                break;
+            case 7:
+                $color = "#00FFFF";
+                break;
+            case 8:
+                $color = "#e10e11";
+                break;
+            default:
+                $color = "#e10e11";
+                break;
+        }
+
+        return $color;
+    }
+
+    public function getDataManager(){
+
+        $dh = new DataHelper(); 
+        $link = "";
+        $value = User::getUserNames($this->data_manager);
+        $admin = Yii::$app->user->identity->isAdmin();
+        if($admin){
+            $url = Url::to(['project/assign','id'=>$this->id],true);
+            $value  = $dh->getModalButton($this, "project/assign", "Assign Data Manager", 'btn btn-default', $value,$url);
+
+        }
+
+        return $value;
     }
 }

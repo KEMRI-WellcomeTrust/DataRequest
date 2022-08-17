@@ -44,8 +44,6 @@ $this->params['breadcrumbs'][] = $this->title;
                  //'value'=> function ($data){return app\models\User::getUserNames($data->user_id);}
              ],
             //'msg_status',
-
-            ['class' => 'yii\grid\ActionColumn'],
         ],
     ]); ?>
 

@@ -10,7 +10,7 @@ use kartik\export\ExportMenu;
 /* @var $searchModel app\models\ProjectSearch */
 /* @var $dataProvider yii\data\ActiveDataProvider */
 
-$this->title = 'Analysis Projects';
+$this->title = 'Archived Projects';
 $this->params['breadcrumbs'][] = $this->title;
 ?>
 <div class="panel panel-info chain-users-index">
@@ -19,15 +19,6 @@ $this->params['breadcrumbs'][] = $this->title;
 
     
     <?php Pjax::begin(['id'=>'pjax-project']); ?>
-    <?php // echo $this->render('_search', ['model' => $searchModel]); ?>
-
-    <p>
-       <?php
-          $dh = new DataHelper();
-            $url = Url::to(['project/create', 'id'=>0]);
-           echo $dh->getModalButton(new \app\models\Project(), "project/create", "Project", 'btn btn-primary pull-right btn-project','Place Analysis/Data Request',$url);
-        ?>
-    </p>
     <?php
     $model = new \app\models\Project();
     $gridColumns  = $model->getGridColumns(); 
@@ -91,21 +82,35 @@ $this->params['breadcrumbs'][] = $this->title;
                          }
                      ],
                      [
-                        'label'=>'Request Status',
+                        'label'=>'Stage',
                         'format'=>'raw',
                          'attribute'=>'request_status',
                          'filter' => app\models\Lookup::getLookupValues("RequestStatus"),
                          'value'=> function ($data){
-                            $dh = new DataHelper();
-                            $value = app\models\Lookup::getValue("RequestStatus", $data->request_status);
-                            $url = Url::to(['project/statusupdate','id'=>$data->id],true);
-                            $link = $dh->getModalButton($data, "//project/statusupdate", "Update Request Status", 'glyphicon glyphicon-edit','update',$url);
-                            return $value." &nbsp; <br/> ".$link."&nbsp;";
+                            $value = $data->getRequestStatus();
+                            $isSuperAdmin = Yii::$app->user->identity->isSuperAdmin();
+                            if($isSuperAdmin){
+                                $dh = new DataHelper();
+                                
+                                if($data->request_status == 5 | $data->request_status == 6 | $data->request_status == 7 | $data->request_status == 8 ){
+                                    $url = Url::to(['project/complete','id'=>$data->id],true);
+                                    $link = $dh->getModalButton($data, "//project/complete", "Update Request Status", 'glyphicon glyphicon-ok','complete',$url);
+                                }
+                                else{
+                                    $url = Url::to(['project/statusupdate','id'=>$data->id],true);
+                                    $link = $dh->getModalButton($data, "//project/statusupdate", "Update Request Status", 'glyphicon glyphicon-edit','update',$url);     
+                                }
+                                
+                                return $value." &nbsp; <br/> ".$link."&nbsp;";
+                            }
+                            else{
+                                return $value;
+                            }
                          }
                      ],
                      
                      ['class' => 'yii\grid\ActionColumn',
-                       'template' => '{update}{delete}',
+                       'template' => '{update}',
                        'buttons' => [
 
                                       'update' => function ($url, $model, $keyword) {

@@ -82,19 +82,25 @@ class UserController extends Controller
         $model = new \app\models\User();
         $dh = new DataHelper;
         $keyword = 'user';
+        if($model->isNewRecord){
+            $model->role = 5; #default to normal user
+        }
 
         if ($model->load(Yii::$app->request->post()) && $model->save()) {
             //return $this->redirect(['view', 'id' => $model->id]);
             if (Yii::$app->request->isAjax)
             {
-               return $dh->processResponse($this, $model, 'update', 'success', 'Successfully Saved!', 'pjax-'.$keyword, $keyword.'-form-alert-'.$model->id);
+               Yii::$app->session->setFlash('success', "Please set your password. <br/>");
+               
+               return $dh->processResponse($this, $model, 'setpassform', 'success', 'Successfully Created User Account', 'pjax-'.$keyword, $keyword.'-form-alert-'.$model->id);
+               #return $this->redirect(['site/login']);
                exit;               
             }
             
         } else {
             if (Yii::$app->request->isAjax)
             {
-                return $dh->processResponse($this, $model, 'create', 'danger', 'Please fix the below errors!', 'pjax-'.$keyword, $keyword.'-form-alert-0');
+                return $dh->processResponse($this, $model, 'create', 'danger', 'Please fix the below errors!'.print_r($model->getErrors(), true), 'pjax-'.$keyword, $keyword.'-form-alert-0');
                exit; 
                      
             }
@@ -147,26 +153,12 @@ class UserController extends Controller
         $model->checkpass = 1;
 
         $model->load(Yii::$app->request->post());
+        
+        if ($model->checkPasswords() && $model->save()) {
+            Yii::$app->response->format = Response::FORMAT_JSON;
+            Yii::$app->session->setFlash('success', "Password Saved Successfully <br/>");
+            return $this->redirect(['site/login']);
 
-        # $before_save = $model->beforeSave("setpass");
-        /*return array(
-            'status'=>'', 
-            'message'=>"Success Message",
-            'div'=>$before_save,
-            'gridid'=>'',
-            'alert_div'=>''
-        );  */
-
-        if ($model->save()) {
-            //return $this->redirect(['view', 'id' => $model->id]);
-            if (Yii::$app->request->isAjax)
-            {   
-                Yii::$app->response->format = Response::FORMAT_JSON;
-                return array(
-                    'status'=>"success", 
-                    'div'=>"Successfully Saved!"
-                    );
-            }
         } else {
             if (Yii::$app->request->isAjax)
             {
