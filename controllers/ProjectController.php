@@ -14,6 +14,7 @@ use yii\helpers\Url;
 use app\models\DataRequest;
 use app\models\Message;
 use app\models\User;
+use kartik\mpdf\Pdf;
 
 /**
  * ProjectController implements the CRUD actions for Project model.
@@ -159,6 +160,9 @@ DOC;
                         'alert_div'=>"project-form-alert-0"
                         );                
                 }
+            }
+            else{
+                return $dh->processResponse($this, $model, 'update', 'danger', 'Please fix the below errors!'.print_r($model->getErrors(),true), 'pjax-'.$keyword, $keyword.'-form-alert-'.$model->id);   
             } 
         }
         else {
@@ -426,6 +430,56 @@ DOC;
         }
     }
 
+    public function actionComplete($id){
+        $model = $this->findModel($id);
+        $dh = new DataHelper;
+        $keyword = 'project';
+        if($model->load(Yii::$app->request->post())){
+            if($model->completed == 1){
+                $model->active = 0;
+            }
+            if ( $model->save()) {
+                //return $this->redirect(['view', 'id' => $model->id]);
+                if (Yii::$app->request->isAjax)
+                {   
+                    #return json_encode($this->renderAjax('update', ['model' => $model]));
+                    $model->afterFind();
+                    Yii::$app->response->format = Response::FORMAT_JSON;
+
+                    #send email alert
+                    $from =User::getFrom(Yii::$app->user->identity->id);
+                    $to = User::getTo($model->user_id);
+                    $subject = "Analysis Request Update";
+                    $project_id = $model->id;
+                    $message = "The data team have posted an update on the status of your data request. Login to check the details. ";
+                    Message::sendMessage($from, $to, $subject, $message, $project_id);
+                
+                    return array(
+                        'status'=>"success", 
+                        'message'=>"Successfully updated project status",
+                        'div'=>"Successfully updated project status.",
+                        'gridid'=>"pjax-project",
+                        'alert_div'=>"project-form-alert-0"
+                        );                 
+                }
+            }
+            else{
+                return $dh->processResponse($this, $model, 'complete', 'danger', 'Please fix the below errors!'.print_r($model->getErrors(),true), 'pjax-'.$keyword, $keyword.'-form-alert-'.$model->id);   
+            }
+        }
+         else {
+            if (Yii::$app->request->isAjax)
+            {
+                return $dh->processResponse($this, $model, 'complete', 'danger', 'Please fix the below errors!'.print_r($model->getErrors(),true), 'pjax-'.$keyword, $keyword.'-form-alert-'.$model->id);   
+            }
+            else{
+                return $this->render('status', [
+                    'model' => $model,
+                ]);
+            }
+        }
+    }
+
     /**
      * Finds the Project model based on its primary key value.
      * If the model is not found, a 404 HTTP exception will be thrown.
@@ -519,5 +573,43 @@ DOC;
                 ]);
             }
         }
+    }
+
+    public function actionReport($id) {
+        return $this->redirect(['get-report','id'=>$id]);
+    }
+    public function actionGetReport($id){
+        // get your HTML raw content without any layouts or scripts
+        $model = $this->findModel($id);
+        $content = $this->renderPartial('view-report',['model' =>$model ]);
+        
+        // setup kartik\mpdf\Pdf component
+        $pdf = new Pdf([
+            // set to use core fonts only
+            'mode' => Pdf::MODE_CORE, 
+            // A4 paper format
+            'format' => Pdf::FORMAT_A4, 
+            // portrait orientation
+            'orientation' => Pdf::ORIENT_PORTRAIT, 
+            // stream to browser inline
+            'destination' => Pdf::DEST_BROWSER, 
+            // your html content input
+            'content' => $content,  
+            // format content from your own css file if needed or use the
+            // enhanced bootstrap css built by Krajee for mPDF formatting 
+            'cssFile' => '@vendor/kartik-v/yii2-mpdf/src/assets/kv-mpdf-bootstrap.min.css',
+            // any css to be embedded if required
+            'cssInline' => '.kv-heading-1{font-size:18px}', 
+             // set mPDF properties on the fly
+            'options' => ['title' => $model->project_name],
+             // call mPDF methods on the fly
+            'methods' => [ 
+                'SetHeader'=>['Analysis & Data Request App'], 
+                'SetFooter'=>['{PAGENO}'],
+            ]
+        ]);
+        
+        // return the pdf output as per the destination setting
+        return $pdf->render(); 
     }
 }

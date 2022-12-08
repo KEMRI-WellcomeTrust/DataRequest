@@ -67,7 +67,7 @@ function ajaxFormButton(uri,div,form){
 
                 }
                 else {   
-                   document.getElementById(div).innerHTML="<img src='images/ajax-loader.gif' alt='Please Wait...'>";  
+                   document.getElementById(div).innerHTML="<img src='ajax-loader.gif' alt='Please Wait...'>";  
                 }
         }
 
@@ -97,7 +97,7 @@ function ajaxFormSubmit(uri,div,form,show_wait, disable_pjax){
                   wait="Please wait"; 
               }
               else{
-                  wait="<img src='/csec/web/images/ajax-loader.gif' alt='Please Wait...'>";
+                  wait="<img src='ajax-loader.gif' alt='Please Wait...'>";
               }
              
               $('#'+div).html(wait);
@@ -175,7 +175,7 @@ function ajaxDelete(uri, div, modelName, id){
             data: {model:modelName, id:id},
             dataType: "json",
             beforeSend: function(x) {  
-              $('#'+div).html("<img src='images/ajax-loader.gif' alt='Please Wait...'>");
+              $('#'+div).html("<img src='ajax-loader.gif' alt='Please Wait...'>");
               if(x && x.overrideMimeType) {
                     x.overrideMimeType("application/j-son;charset=UTF-8");
               }
@@ -222,7 +222,7 @@ function  showAjaxViewTabs(url,div,view_id, view_file){
 
                     }
                     else {
-                       document.getElementById(div).innerHTML="<img src='images/ajax-loader.gif' alt='Please Wait...'>";
+                       document.getElementById(div).innerHTML="<img src='ajax-loader.gif' alt='Please Wait...'>";
                     }
             }
            
@@ -255,7 +255,7 @@ function ajaxUniversalGetRequest(uri,div,string, showPleaseWait){
             dataType: "json",
             beforeSend: function(x) {  
                if(showPleaseWait==1){
-                    $('#'+div).html("<img src='/web/images/ajax-loader.gif' alt='Please Wait...'>");
+                    $('#'+div).html("<img src='ajax-loader.gif' alt='Please Wait...'>");
                }
             if(x && x.overrideMimeType) {
                     x.overrideMimeType("application/j-son;charset=UTF-8");
@@ -349,7 +349,7 @@ function uploadFile(url, divid, field, field_url){
                 contentType: false,
                 data: formData,
             beforeSend: function(x) {  
-                $('#'+divid).html("<img src='web/images/ajax-loader.gif' alt='Please Wait...'>");
+                $('#'+divid).html("<img src='ajax-loader.gif' alt='Please Wait...'>");
             },
             success: function(data){   
                     $('#'+divid).html(data.div);
@@ -482,6 +482,6 @@ $(function () {
   
 })
 
-
-
-
+$('#modal_id').on('hidden.bs.modal', function () {
+    location.reload();
+    })

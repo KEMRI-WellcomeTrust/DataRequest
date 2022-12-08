@@ -69,7 +69,7 @@ class DataRequest extends \yii\db\ActiveRecord
             'date_from' => 'Date From',
             'date_to' => 'Date To',
             'other_info' => 'Justification for variables',
-            'received_date' => 'Received Date',
+            'received_date' => 'Date Request Recieved',
             'reviewed_by' => 'Reviewed By',
             'approved_by' => 'Approved By',
             'approved_date' => 'Approved Date',
@@ -108,5 +108,34 @@ HEREDOC;
         
         return $current_review." <p> ". $review ." </p>";
 
+    }
+
+    public function getDataStatus(){
+        $value = Lookup::getValue("DataStatus", $this->status);
+        $color = self::getStatusColor($this->status);
+
+        return "<span style='color:$color'>".$value."</span>"; 
+    }
+
+    public static function getStatusColor($request_status){
+        $color = "#85929e";
+        switch($request_status){
+            case 1:
+                $color = "#1c2833";
+                break;
+
+            case 2:
+                $color = "#16a085";
+                break;
+ 
+            case 3:
+                $color = "#e10e11";
+                break;
+            default:
+                $color = "#e10e11";
+                break;
+        }
+
+        return $color;
     }
 }

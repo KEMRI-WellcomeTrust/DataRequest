@@ -31,14 +31,12 @@ $this->params['breadcrumbs'][] = $this->title;
             [                      
                 'label' => 'Primary Contact',
                 'format' => "raw",
-                'value' => "<span class='badge badge-info'>
-                ".User::getUserNames($model->user_id)." 
-                </span>"
+                'value' => User::getUserNames($model->user_id)
             ], 
             [                      
                 'label' => 'Data Manager',
                 'format' => "raw",
-                'value' => "<span class='badge badge-secondary'>".User::getUserNames($model->data_manager)."</span>"
+                'value' => User::getUserNames($model->data_manager)
             ],
             'data_crfs:html',
             'data_variables:html',
@@ -50,27 +48,28 @@ $this->params['breadcrumbs'][] = $this->title;
             [                      
                 'label' => 'Reviewed By',
                 'format' => "raw",
-                'value' => "<span class='badge badge-secondary'>".User::getUserNames($model->reviewed_by)."</span>"
+                'value' => User::getUserNames($model->reviewed_by)
             ],
             'review_date',
             'review_comments:html',
             [                      
                 'label' => 'Approved By',
                 'format' => "raw",
-                'value' => "<span class='badge badge-secondary'>".User::getUserNames($model->approved_by)."</span>"
+                'value' => User::getUserNames($model->approved_by)
             ],
             'approved_date',
             [                      
                 'label' => 'Approval Status',
                 'format' => "raw",
-                'value' => "<span class='badge badge-danger'>".Lookup::getValue("DataStatus", $model->status)."</span>"
+                'value' => $model->getDataStatus()
             ],
             'status_comments:html',
             [                      
                 'label' => 'Issued?',
                 'format' => "raw",
                 'value' => "<span class='badge badge-success'>".Lookup::getValue("IssuedStatus", $model->issued_status)."</span>"
-            ]
+            ],
+            'issued_date'
         ],
     ]) ?>
 

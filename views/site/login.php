@@ -13,6 +13,10 @@ $this->title = 'Login';
 <div class="site-login container">
     <h1><?= Html::encode($this->title) ?></h1>
 
+    <div id="message">
+        <?= Yii::$app->session->getFlash('success');?>
+    </div>
+
     <p>Please fill out the following fields to login:</p>
 
     <?php $form = ActiveForm::begin([
@@ -24,7 +28,7 @@ $this->title = 'Login';
         ],
     ]); ?>
 
-        <?= $form->field($model, 'username')->textInput(['autofocus' => true]) ?>
+        <?= $form->field($model, 'email')->textInput(['autofocus' => true]) ?>
 
         <?= $form->field($model, 'password')->passwordInput() ?>
 
@@ -42,6 +46,14 @@ $this->title = 'Login';
                 $url = yii\helpers\Url::to(['site/forgotpass', 'id'=>0],true);
                 $link  = $dh->getModalButton(new \app\models\User, "site/forgotpass", "Forgot Password", 'btn btn-warning','Forgot Password',$url);
                 echo $link;
+                ?>
+                
+            </div>
+            <div class="col-lg-offset-1 col-lg-2">
+                <?php
+                    $dh = new \app\utilities\DataHelper();
+                    $url = yii\helpers\Url::to(['user/create', 'id'=>0]);
+                    echo $dh->getModalButton(new \app\models\User(), "user/create", "Register for a user account on this portal", 'btn btn-info pull-right btn-beneficiary','New User? <br/> Click here to register',$url);
                 ?>
                 
             </div>

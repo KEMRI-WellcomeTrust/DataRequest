@@ -63,23 +63,22 @@ $this->params['breadcrumbs'][] = $this->title;
                     $admin = Yii::$app->user->identity->isAdmin();
                     if($admin){
                         $url = Url::to(['data-request/assign','id'=>$data->id],true);
-                        $value  = $dh->getModalButton($data, "data-request/assign", "Data Request", 'btn btn-info', $value, $url);
+                        $value  = $dh->getModalButton($data, "data-request/assign", "Data Request", 'btn btn-default', $value, $url);
 
                     }
                      return "<span class='success'>".$value."</span> ";
 
                  }
              ],
-           [
+           /*[
                 'label'=>'Status',
                 'format'=>'raw',
                  'attribute'=>'status',
                  'filter' => app\models\Lookup::getLookupValues("DataStatus"),
                  'value'=> function ($data){
-                    
-                     app\models\Lookup::getValue("DataStatus", $data->status);
+                    return $data->getDataStatus();
                  }
-             ],
+             ],  **/
              [
                 'label'=>'Issued',
                 'format'=>'raw',
@@ -90,7 +89,7 @@ $this->params['breadcrumbs'][] = $this->title;
                     $value = app\models\Lookup::getValue("IssuedStatus", $data->issued_status);
                     $value = $value==""? "Pending":$value;
                     $admin = Yii::$app->user->identity->isAdmin();
-                    if($admin == true && $value == "Pending" && $data->status == 2){
+                    if($admin == true && $value == "Pending"){
                         $url = Url::to(['data-request/issue','id'=>$data->id],true);
                         $value  = $dh->getModalButton($data, "data-request/issue", "Data Request", 'btn btn-warning', $value, $url);
 
@@ -101,7 +100,7 @@ $this->params['breadcrumbs'][] = $this->title;
                      return "<span class='success'>".$value."</span> ";
                  }
              ],
-             [
+            /* [
                 'label'=>'Action',
                 'format'=>'raw',
                  'attribute'=>'status',
@@ -122,7 +121,8 @@ $this->params['breadcrumbs'][] = $this->title;
                     }
                     return "&nbsp;".$link."&nbsp;".$link2;
                  }
-             ],
+             ],  
+             ***/
             //'date_from',
             //'date_to',
             //'other_info:ntext',

@@ -12,7 +12,7 @@ use yii\helpers\Url;
 /* @var $model app\models\DataRequest */
 /* @var $form yii\widgets\ActiveForm */
 ?>
-
+ 
 <?php   $id = isset($model->id)?$model->id:0; ?>
 <div class="data-request-form" id="data-request-form-div-<?= $id ?>">
     <?php  $form = ActiveForm::begin(['id'=>'data-request-form-'.$id]); ?>

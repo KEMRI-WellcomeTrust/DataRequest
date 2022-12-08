@@ -10,6 +10,7 @@ use yii\filters\VerbFilter;
 use app\models\LoginForm;
 use app\models\ContactForm;
 use app\models\ProjectSearch;
+use app\models\Project;
 use app\utilities\DataHelper;
 use yii\helpers\Url;
 
@@ -62,7 +63,7 @@ class SiteController extends Controller
      *
      * @return string
      */
-    public function actionIndex()
+    public function actionIndex($status = '')
     {
         
         if(!Yii::$app->user->isGuest){
@@ -71,12 +72,25 @@ class SiteController extends Controller
             $searchModel = new ProjectSearch();
 
             $dataProvider = $searchModel->search(Yii::$app->request->queryParams);
-            $dataProvider->query->andWhere(" active = 1 ")
-                        ->orderBy(['id'=>SORT_DESC]); #archived
-          
+            
+            /* if($status){
+                $status_query = Project::getStatusQuery($status);
+            }
+            else{
+                $status = "submitted";
+                $status_query = Project::getStatusQuery($status);
+                $dataProvider->query->andWhere($status_query);
+            }
+            
+
+            $dataProvider->query->andWhere($status_query);   #->query->andWhere(" active = 1 ")
+                         #archived
+            ***/
+            
             return $this->render('index', [
                 'searchModel' => $searchModel,
                 'dataProvider' => $dataProvider,
+                'status' => $status
             ]);
         }
         else{
@@ -238,7 +252,7 @@ class SiteController extends Controller
             $dataProvider = $searchModel->search(Yii::$app->request->queryParams);
             $dataProvider->query->andWhere(" active = 0 OR active IS NULL "); #archived
           
-            return $this->render('index', [
+            return $this->render('archive', [
                 'searchModel' => $searchModel,
                 'dataProvider' => $dataProvider,
             ]);

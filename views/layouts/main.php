@@ -61,7 +61,7 @@ AppAsset::register($this);
         'options' => ['class' => 'navbar-nav navbar-right'],
         'items' => [
             !Yii::$app->user->isGuest ? ['label' => 'Home', 'url' => ['/site/index'],'linkOptions' => ['class'=>'btn btn-info btn-margin']]:'',
-            !Yii::$app->user->isGuest ? ['label' => 'Archived Projects', 'url' => ['/site/archive'],'linkOptions' => ['class'=>'btn btn-info btn-margin']]:'',
+            #!Yii::$app->user->isGuest ? ['label' => 'Archived Projects', 'url' => ['/site/archive'],'linkOptions' => ['class'=>'btn btn-info btn-margin']]:'',
             '<li>'.$profile_btn.'</li>',
             !Yii::$app->user->isGuest?
                 Yii::$app->user->identity->isAdmin()  ? ['label' => 'Settings', 'url' => ['/user/index'],'linkOptions' => ['class'=>'btn btn-info btn-margin']]:''
@@ -117,6 +117,9 @@ $this->registerJsFile('@web/js/validations.js', ['depends' => [\yii\web\JqueryAs
           
         Modal::end();  
      ?>
+<script type="text/javascript">
+    
+</script>
 <footer class="footer">
     <div class="container">
         <p class="pull-left">&copy; CHAIN NETWORK <?= date('Y') ?> </p>

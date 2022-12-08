@@ -18,6 +18,10 @@ use yii\helpers\Url;
 EOD;
         $form = ActiveForm::begin(['id'=>"$view_name-form-$id"]);
 ?>
+    <div id="message">
+        <?= Yii::$app->session->getFlash('success');?>
+    </div>
+
     <?= $form->field($model, 'passwd')->passwordInput(['maxlength' => true]) ?>
 
     <?= $form->field($model, 'confirmpass')->passwordInput() ?>
