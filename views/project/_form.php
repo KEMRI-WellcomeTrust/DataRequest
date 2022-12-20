@@ -97,6 +97,7 @@ $this->registerCssFile(\Yii::$app->request->BaseUrl."/css/select2.min.css", [
             ],
         ])->hint($hint); 
     ?>
+<<<<<<< HEAD
     
         <?= $form->field($model, 'stage')->widget(Select2::classname(), [
             'data' => \app\models\Lookup::getLookupValues('Stage'),
@@ -116,12 +117,25 @@ $this->registerCssFile(\Yii::$app->request->BaseUrl."/css/select2.min.css", [
     ?>
 
     <?php
+=======
+
+    <?php
+        $hint = "What is the anticipated timeline?";
+        echo $form->field($model, 'milestones')->widget(CKEditor::className(), [
+            'options' => ['rows' => 1, 'title' => $hint,'data-toggle' => 'tooltip'],
+            'preset' => 'full'
+        ])->hint($hint); 
+    ?>
+
+    <?php
+>>>>>>> 4851e45aadad66378845c561f0293501f3bc1f8d
         $hint = "What are the intended outputs (grant application, publication, policy statement, etc)?";
         echo $form->field($model, 'pub_plan')->widget(CKEditor::className(), [
             'options' => ['rows' => 3, 'title' => $hint,'data-toggle' => 'tooltip'],
             'preset' => 'full'
 	    ])->hint($hint); 
     ?>
+<<<<<<< HEAD
 
     <?php 
         $hint = "When will the concept be finalized?";
@@ -175,6 +189,8 @@ $this->registerCssFile(\Yii::$app->request->BaseUrl."/css/select2.min.css", [
             ]
         ])->hint($hint);   
     ?>
+=======
+>>>>>>> 4851e45aadad66378845c561f0293501f3bc1f8d
 
 
     <div class="form-group">

@@ -158,6 +158,7 @@ class UserController extends Controller
         if ($model->checkPasswords() && $model->save()) {
             Yii::$app->response->format = Response::FORMAT_JSON;
             Yii::$app->session->setFlash('success', "Password Saved Successfully <br/>");
+<<<<<<< HEAD
             $link = Html::a("Click Here to Login", ['site/login']);
             return array(
                 'status'=>'', 
@@ -167,6 +168,9 @@ class UserController extends Controller
                 'alert_div'=>''
             );
             #return $this->redirect(['site/login']);
+=======
+            return $this->redirect(['site/login']);
+>>>>>>> 4851e45aadad66378845c561f0293501f3bc1f8d
 
         } else {
             if (Yii::$app->request->isAjax)
