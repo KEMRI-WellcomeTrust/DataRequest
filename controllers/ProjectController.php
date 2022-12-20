@@ -127,7 +127,7 @@ class ProjectController extends Controller
         $model = $this->findModel($id);
         $dh = new DataHelper;
         $keyword = 'project';
-        $model->request_status = 4; //resubmitted.
+        $model->request_status = $model->setRequestStatus(); //resubmitted.
         $sap = $model->sap;
 
         if($model->load(Yii::$app->request->post())){

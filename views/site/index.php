@@ -48,7 +48,7 @@ $this->params['breadcrumbs'][] = $this->title;
         <div id="sap" class="tab-pane fade">
             <?php
                 $stage = "SAP";
-                $stage_query = Project::getStageQuery($stage);  echo $stage_query;
+                $stage_query = Project::getStageQuery($stage);
                 $sap_dp->query->andWhere($stage_query)->orderBy(['id'=>SORT_DESC]);
                 echo Yii::$app->controller->renderPartial("project", [
                     'dataProvider' => $sap_dp,

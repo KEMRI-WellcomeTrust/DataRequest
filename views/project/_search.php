@@ -26,6 +26,8 @@ use yii\widgets\ActiveForm;
 
     <?= $form->field($model, 'request_type') ?>
 
+    <?= $form->field($model, 'stage') ?>
+
     <?php // echo $form->field($model, 'type_data') ?>
 
     <?php // echo $form->field($model, 'proposal_type') ?>

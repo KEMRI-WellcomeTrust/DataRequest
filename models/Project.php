@@ -4,6 +4,7 @@ namespace app\models;
 use app\utilities\DataHelper;
 use Yii;
 use yii\helpers\Url;
+use DateTime;
 
 
 /**
@@ -294,7 +295,7 @@ HEREDOC;
         }
             
         $connection = Yii::$app->getDb();
-        $command = $connection->createCommand("SELECT count(*) as total FROM project where request_status IN ($list)");
+        $command = $connection->createCommand("SELECT count(*) as total FROM project where stage = 1 AND request_status IN ($list)");
         $result = $command->queryAll();
         return $result[0]['total'];
     }
@@ -433,5 +434,57 @@ HEREDOC;
         }
 
         return $value;
+    }
+
+    public function getStatus(){
+        $stage = Lookup::getValue("Stage", $this->stage);
+        $due_date = "Not set";
+        switch($stage){
+            case "Concept":
+                $due_date = isset($this->est_concept_date)? $this->est_concept_date: "Not set";
+                break;
+            case "SAP":
+                $due_date = isset($this->est_sap_date)? $this->est_sap_date: "Not set";
+                break;
+            case "Analysis":
+                $due_date = isset($this->est_analysis_date)? $this->est_analysis_date: "Not set";
+                break;
+            case "Manuscript":
+                $due_date = isset($this->est_manuscript_date)? $this->est_manuscript_date: "Not set";
+                break;
+            case "Publication":
+                $due_date = isset($this->est_pub_date)? $this->est_pub_date: "Not set";
+                break;
+            default:
+                $query='';
+        }
+        $days_due = 0;
+        if($due_date != "Not set"){
+            $today = new DateTime(date("Y-m-d"));
+            $due_date = new DateTime($due_date);
+            $days_due = $due_date->diff($today)->format("%a"); 
+        }
+        $label = "";
+        if($days_due < 7){
+            $label = '<span class="label label-danger">'.$days_due.' Days</span>';
+        }
+        elseif($days_due < 14 && $days_due > 7){
+            $label = '<span class="label label-warning">'.$days_due.' Days</span>';
+        }
+        else{
+            $label = '<span class="label label-info">'.$days_due.' Days</span>';
+        }
+        
+        return $label;
+    }
+
+    public function setRequestStatus(){
+        $current_user = Yii::$app->user->identity->id;
+        if($current_user == $model->user_id && $model->stage == 1){
+            return 4; #resubmitted 
+        }
+        else{
+            return $model->request_status;
+        }
     }
 }

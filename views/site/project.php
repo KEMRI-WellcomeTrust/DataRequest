@@ -94,7 +94,7 @@ use app\models\Project;
                             return $link."&nbsp;";
                          }
                      ],
-                     [
+                     /*[
                         'label'=>'Type of Data',
                         'format'=>'raw',
                          'attribute'=>'type_data',
@@ -102,8 +102,8 @@ use app\models\Project;
                          'value'=> function ($data){
                              return app\models\Lookup::getValue("TypeData", $data->type_data);
                          }
-                     ],
-                     [
+                     ],  **/
+                    /*  [
                         'label'=>'Stage',
                         'format'=>'raw',
                          'attribute'=>'stage',
@@ -111,8 +111,8 @@ use app\models\Project;
                          'value'=> function ($data){
                              return app\models\Lookup::getValue("Stage", $data->stage);
                          }
-                     ],
-                     [
+                     ],**/
+                    [
                         'label'=>'Proposal Type',
                         'format'=>'raw',
                          'attribute'=>'proposal_type',
@@ -120,7 +120,7 @@ use app\models\Project;
                          'value'=> function ($data){
                              return app\models\Lookup::getValue("ProposalType", $data->proposal_type);
                          }
-                     ],
+                     ], 
                      'date_submitted',
                      [
                         'label'=>'Responsible User',
@@ -147,6 +147,14 @@ use app\models\Project;
                             }
                              return $value;
         
+                         }
+                     ],
+                     [
+                        'label'=>'Status',
+                        'format'=>'raw',
+                         'attribute'=>'status_',
+                         'value'=> function ($data){
+                            return $data->getStatus();
                          }
                      ],
                      [
