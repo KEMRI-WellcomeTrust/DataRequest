@@ -14,7 +14,6 @@ use Yii;
  * @property string $mname
  * @property string $lname
  * @property string $designation
- * @property int $org_id
  * @property int $fk_site
  * @property string $role
  * @property string $color
@@ -49,7 +48,7 @@ class User extends \yii\db\ActiveRecord  implements IdentityInterface
             [['username', 'fname', 'mname', 'lname', 'designation'], 'string', 'max' => 200],
             [['email', 'passwd','confirmpass', 'checkpass','emailpass'], 'string', 'max' => 500],
             [['passwd'], 'string', 'max' => 500],
-            [['last_login','role', 'color', 'org_id'], 'safe']
+            [['last_login','role', 'color'], 'safe']
         ];
     }
 
@@ -67,7 +66,6 @@ class User extends \yii\db\ActiveRecord  implements IdentityInterface
             'lname' => 'Last Name',
             'designation' => 'Designation',
             'role' => "Role",
-            'org_id' => "Organization Name",
             'color' => "Preferred Color Code",
             'fk_site' => "Site"
           

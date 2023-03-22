@@ -72,12 +72,8 @@ class SiteController extends Controller
             $searchModel = new ProjectSearch();
 
             $dataProvider = $searchModel->search(Yii::$app->request->queryParams);
-<<<<<<< HEAD
-            
-            /* if($status){
-=======
+
             if($status){
->>>>>>> 4851e45aadad66378845c561f0293501f3bc1f8d
                 $status_query = Project::getStatusQuery($status);
             }
             else{
@@ -85,18 +81,10 @@ class SiteController extends Controller
                 $status_query = Project::getStatusQuery($status);
                 $dataProvider->query->andWhere($status_query);
             }
-<<<<<<< HEAD
-            
 
-            $dataProvider->query->andWhere($status_query);   #->query->andWhere(" active = 1 ")
-                         #archived
-            ***/
-            
-=======
             $dataProvider->query->andWhere($status_query)->orderBy(['id'=>SORT_DESC]);   #->query->andWhere(" active = 1 ")
                          #archived
           
->>>>>>> 4851e45aadad66378845c561f0293501f3bc1f8d
             return $this->render('index', [
                 'searchModel' => $searchModel,
                 'dataProvider' => $dataProvider,
