@@ -480,11 +480,11 @@ HEREDOC;
 
     public function setRequestStatus(){
         $current_user = Yii::$app->user->identity->id;
-        if($current_user == $model->user_id && $model->stage == 1){
+        if($current_user == $this->user_id && $this->stage == 1){
             return 4; #resubmitted 
         }
         else{
-            return $model->request_status;
+            return $this->request_status;
         }
     }
 }
